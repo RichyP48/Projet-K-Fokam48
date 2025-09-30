@@ -1,0 +1,80 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**, /api/users/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 120
+                key-resolver: "#{@userKeyResolver}"
+
+        # Offers Service (ou tout autre service)
+        - id: offers-service
+          uri: lb://offers-service
+          predicates:
+            - Path=/api/offres/**
+
+        # Applications Service
+        - id: applications-service
+          uri: lb://applications-service
+          predicates:
+            - Path=/api/candidatures/**
+
+        # Conventions Service
+        - id: conventions-service
+          uri: lb://conventions-service
+          predicates:
+            - Path=/api/conventions/**
+
+        # Notifications Service
+        - id: notifications-service
+          uri: lb://notifications-service
+          predicates:
+            - Path=/api/notifications/**
+
+        # Reporting Service
+        - id: reporting-service
+          uri: lb://reporting-service
+          predicates:
+            - Path=/api/reports/**
+
+# Configuration Eureka Client
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Configuration de sécurité (JWT)
+jwt:
+  secret: "votre-super-secret-pour-la-clinique-k-fokam-a-remplacer"
+
+# Endpoints Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+

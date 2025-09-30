@@ -1,0 +1,101 @@
+# Configuration corrigée avec bases de données séparées
+services:
+  # Bases de données séparées par service
+  postgres-users:
+    image: postgres:17-alpine
+    container_name: postgres-users
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pkf
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+    networks:
+      - microservice-network
+
+  postgres-offers:
+    image: postgres:17-alpine
+    container_name: postgres-offers
+    environment:
+      POSTGRES_DB: offer_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pkf
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_offers_data:/var/lib/postgresql/data
+    networks:
+      - microservice-network
+
+  postgres-applications:
+    image: postgres:17-alpine
+    container_name: postgres-applications
+    environment:
+      POSTGRES_DB: candidatures_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pkf
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_applications_data:/var/lib/postgresql/data
+    networks:
+      - microservice-network
+
+  postgres-reporting:
+    image: postgres:17-alpine
+    container_name: postgres-reporting
+    environment:
+      POSTGRES_DB: reporting_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pkf
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_reporting_data:/var/lib/postgresql/data
+    networks:
+      - microservice-network
+
+  # Services avec URLs corrigées
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-users
+      - eureka-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/user_db
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-admin:pkf@eureka-server:8761/eureka/
+
+  reporting-service:
+    build: ./reporting-service
+    container_name: reporting-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      - postgres-reporting
+      - eureka-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-reporting:5432/reporting_db
+      USER_SERVICE_URL: http://user-service:8080
+      CONVENTIONS_SERVICE_URL: http://conventions-service:8095
+
+volumes:
+  postgres_users_data:
+  postgres_offers_data:
+  postgres_applications_data:
+  postgres_reporting_data:
+  minio_data:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  microservice-network:
+    driver: bridge

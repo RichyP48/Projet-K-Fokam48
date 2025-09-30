@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client de Notifications en Temps Réel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bibliothèques pour la connexion WebSocket STOMP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        /* Animation pour l'apparition des notifications */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .toast {
+            animation: slideInUp 0.5s ease-out forwards;
+        }
+    </style>
+    <script>
+        // Configuration des couleurs personnalisées de l'utilisateur
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {50: '#f1fcfa', 100: '#cff8ef', 200: '#9ff0e1', 300: '#67e1cf', 400: '#32b9a9', 500: '#1fad9f', 600: '#168b82', 700: '#166f69', 800: '#165955', 900: '#174a47', 950: '#072c2b'},
+                        neutral: {50: '#f6f6f6', 100: '#e7e7e7', 200: '#d1d1d1', 300: '#b0b0b0', 400: '#888888', 500: '#6d6d6d', 600: '#5d5d5d', 700: '#4f4f4f', 800: '#454545', 900: '#3d3d3d', 950: '#000000'},
+                        dark: '#212529',
+                        light: '#f0f3fb'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-light text-dark font-sans">
+
+<div class="container mx-auto p-4 md:p-8 max-w-4xl">
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-primary-800">Tableau de Bord des Notifications</h1>
+        <p class="text-neutral-600 mt-2">Client de test pour le microservice de notifications.</p>
+    </header>
+
+    <!-- Section de Connexion -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-2xl font-semibold mb-4 text-primary-700">Configuration de la Connexion</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+            <div>
+                <label for="userId" class="block text-sm font-medium text-neutral-700">User ID</label>
+                <input type="text" id="userId" placeholder="Ex: 1" class="mt-1 block w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500">
+            </div>
+            <div class="md:col-span-2">
+                <label for="jwt" class="block text-sm font-medium text-neutral-700">Token JWT</label>
+                <textarea id="jwt" rows="4" placeholder="Collez votre token Bearer ici..." class="mt-1 block w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"></textarea>
+            </div>
+        </div>
+        <div class="flex items-center justify-between mt-4">
+            <div id="status" class="text-sm font-medium">⚫ Déconnecté</div>
+            <div>
+                <button id="connectBtn" class="bg-primary-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-700 transition duration-300">
+                    Connexion
+                </button>
+                <button id="disconnectBtn" class="bg-neutral-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-neutral-600 transition duration-300" disabled>
+                    Déconnexion
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section de l'historique -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-semibold text-primary-700">Historique des Notifications</h2>
+            <button id="fetchHistoryBtn" class="bg-primary-100 text-primary-800 font-bold py-2 px-4 rounded-lg hover:bg-primary-200 transition duration-300" disabled>
+                Rafraîchir l'historique
+            </button>
+        </div>
+        <div id="historyContainer" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+            <!-- L'historique des notifications sera injecté ici -->
+            <p class="text-neutral-500 text-center py-4">Connectez-vous et cliquez sur "Rafraîchir" pour voir votre historique.</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Conteneur pour les notifications toast en temps réel -->
+<div id="toastContainer" class="fixed bottom-4 right-4 w-full max-w-sm space-y-3 z-50">
+    <!-- Les notifications temps réel apparaîtront ici -->
+</div>
+
+<script>
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const fetchHistoryBtn = document.getElementById('fetchHistoryBtn');
+    const statusDiv = document.getElementById('status');
+    const toastContainer = document.getElementById('toastContainer');
+    const historyContainer = document.getElementById('historyContainer');
+
+    let stompClient = null;
+    let userId = '';
+    let jwt = '';
+
+    // URL du service de notifications
+    const NOTIFICATION_SERVICE_URL = 'http://localhost:8085';
+
+    function setConnected(connected) {
+        connectBtn.disabled = connected;
+        disconnectBtn.disabled = !connected;
+        fetchHistoryBtn.disabled = !connected;
+        statusDiv.innerHTML = connected ? '🟢 Connecté' : '⚫ Déconnecté';
+        statusDiv.className = connected ? 'text-sm font-medium text-green-600' : 'text-sm font-medium';
+        if (!connected) {
+            historyContainer.innerHTML = '<p class="text-neutral-500 text-center py-4">Connectez-vous pour voir votre historique.</p>';
+        }
+    }
+
+    function connect() {
+        userId = document.getElementById('userId').value.trim();
+        jwt = document.getElementById('jwt').value.trim();
+
+        if (!userId || !jwt) {
+            alert("Veuillez renseigner l'User ID et le token JWT.");
+            return;
+        }
+
+        // Crée une nouvelle connexion WebSocket via SockJS
+        const socket = new SockJS(`${NOTIFICATION_SERVICE_URL}/ws/notifications`);
+        stompClient = Stomp.over(socket);
+
+        // Headers de connexion, incluant le token JWT pour l'authentification
+        const headers = {
+            'Authorization': `Bearer ${jwt}`
+        };
+
+        stompClient.connect(headers,
+            (frame) => { // Callback en cas de succès
+                setConnected(true);
+                console.log('Connecté: ' + frame);
+
+                // Souscription au canal de notification privé de l'utilisateur
+                stompClient.subscribe(`/user/${userId}/topic/notifications`, (notification) => {
+                    showNotification(JSON.parse(notification.body));
+                });
+            },
+            (error) => { // Callback en cas d'erreur
+                console.error('Erreur de connexion:', error);
+                alert('La connexion a échoué. Vérifiez la console et votre token JWT.');
+                setConnected(false);
+            }
+        );
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        setConnected(false);
+        console.log("Déconnecté");
+    }
+
+    // Affiche une notification toast
+    function showNotification(notification) {
+        const toast = document.createElement('div');
+        toast.className = 'toast bg-primary-800 text-white p-4 rounded-lg shadow-xl';
+
+        let content = `
+                <h3 class="font-bold">${notification.sujet || 'Nouvelle Notification'}</h3>
+                <p>${notification.contenu || ''}</p>
+            `;
+        toast.innerHTML = content;
+
+        toastContainer.appendChild(toast);
+
+        // Fait disparaître la notification après 7 secondes
+        setTimeout(() => {
+            toast.remove();
+        }, 7000);
+    }
+
+    // Récupère l'historique des notifications via l'API REST
+    async function fetchHistory() {
+        if (!userId || !jwt) return;
+
+        historyContainer.innerHTML = '<p class="text-neutral-500 text-center py-4">Chargement...</p>';
+
+        try {
+            const response = await fetch(`${NOTIFICATION_SERVICE_URL}/api/notifications/user/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${jwt}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+
+            const notifications = await response.json();
+            renderHistory(notifications);
+        } catch (error) {
+            console.error("Erreur lors de la récupération de l'historique:", error);
+            historyContainer.innerHTML = '<p class="text-red-500 text-center py-4">Impossible de charger l\'historique.</p>';
+        }
+    }
+
+    // Affiche l'historique dans le conteneur dédié
+    function renderHistory(notifications) {
+        if (notifications.length === 0) {
+            historyContainer.innerHTML = '<p class="text-neutral-500 text-center py-4">Aucune notification dans votre historique.</p>';
+            return;
+        }
+
+        historyContainer.innerHTML = notifications.map(notif => `
+                <div class="p-3 rounded-lg ${notif.statut === 'VUE' ? 'bg-neutral-100' : 'bg-primary-50 border-l-4 border-primary-500'}">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-primary-900">${notif.sujet}</h4>
+                        <span class="text-xs text-neutral-500">${new Date(notif.dateCreation).toLocaleString('fr-FR')}</span>
+                    </div>
+                    <div class="text-sm text-neutral-700 mt-1">${notif.contenu}</div>
+                </div>
+            `).join('');
+    }
+
+    // Ajout des écouteurs d'événements
+    connectBtn.addEventListener('click', (e) => { e.preventDefault(); connect(); });
+    disconnectBtn.addEventListener('click', (e) => { e.preventDefault(); disconnect(); });
+    fetchHistoryBtn.addEventListener('click', (e) => { e.preventDefault(); fetchHistory(); });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+package com.mogou.model;
+
+public enum TypeEvaluation {
+    ENTREPRISE_EVALUE_ETUDIANT,
+    ETUDIANT_EVALUE_STAGE,
+    ETUDIANT_AUTO_EVALUATION,
+    ETUDIANT_EVALUE_ENCADREMENT
+}

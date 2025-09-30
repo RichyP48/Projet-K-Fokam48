@@ -1,0 +1,66 @@
+# ===============================================
+# Configuration du serveur
+# ===============================================
+server:
+  port: 8086 # Port dédié au service de reporting
+
+spring:
+  application:
+    name: reporting-service
+  sql:
+    init:
+      mode: always
+
+  # ===============================================
+  # Configuration de la base de données (pour stocker les rapports)
+  # ===============================================
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/reporting_db}
+    username: postgres
+    password: pkf
+    driver-class-name: org.postgresql.Driver
+
+  # ===============================================
+  # Configuration de JPA et Hibernate
+  # ===============================================
+  jpa:
+    hibernate:
+      ddl-auto: update # Met à jour le schéma au démarrage (pratique en développement)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ===============================================
+  # Configuration du Cache (désactivé)
+  # ===============================================
+  cache:
+    type: none # Désactive le cache Redis
+
+# ===============================================
+# Configuration du client Eureka
+# ===============================================
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-admin:pkf@localhost:8761/eureka/
+    fetch-registry: false
+    register-with-eureka: false
+    enabled: false
+  instance:
+    hostname: localhost
+
+# ===============================================
+# Configuration de la Sécurité JWT
+# ===============================================
+jwt:
+  secret: "VGhpcy1pcy1hLXN1cGVyLWxvbmcgYW5kLWNvbXBsZXgtc2VjcmV0LXN0cmluZy1lbmNvZGVkLWluLWJhc2U2NA"
+  expiration-ms: 86400000
+
+# Configuration des services externes
+services:
+  user-service:
+    url: ${USER_SERVICE_URL:http://localhost:8080}
+  conventions-service:
+    url: ${CONVENTIONS_SERVICE_URL:http://localhost:8095}
+  applications-service:
+    url: ${APPLICATIONS_SERVICE_URL:http://localhost:8082}

@@ -1,0 +1,207 @@
+server:
+  port: 8090 # Port du Gateway
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Permet de router automatiquement vers Eureka
+          lower-case-service-id: true
+      routes:
+            # ==========================
+            # ROUTES VERS LES MICROSERVICES
+            # ==========================
+            - id: user-service-auth
+              uri: lb://user-service
+              predicates:
+                - Path=/api/auth/**
+                    
+            - id: user-service-users
+              uri: lb://user-service
+              predicates:
+                - Path=/api/users/**
+                
+            - id: user-service-admin
+              uri: lb://user-service
+              predicates:
+                - Path=/api/admin/**
+                
+            - id: user-service-academic
+              uri: lb://user-service
+              predicates:
+                - Path=/api/academic/**
+                
+            - id: user-service-entreprises
+              uri: lb://user-service
+              predicates:
+                - Path=/api/entreprises/**
+                
+            - id: companies-service
+              uri: lb://offers-service
+              predicates:
+                - Path=/api/companies/**
+
+            - id: offers-service
+              uri: lb://offers-service
+              predicates:
+                - Path=/api/offers/**
+                
+            - id: simple-offers-service
+              uri: lb://offers-service
+              predicates:
+                - Path=/api/simple-offers/**
+                
+            - id: offers-test-service
+              uri: lb://offers-service
+              predicates:
+                - Path=/api/test/**
+
+            - id: applications-service
+              uri: lb://applications-service
+              predicates:
+                - Path=/api/candidatures/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: applicationsServiceCB
+                    fallbackUri: forward:/fallback/applications-service
+
+            - id: conventions-service
+              uri: lb://conventions-service
+              predicates:
+                - Path=/api/conventions/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: conventionsServiceCB
+                    fallbackUri: forward:/fallback/conventions-service
+
+
+            - id: evaluation-service
+              uri: lb://evaluation-service
+              predicates:
+                - Path=/api/evaluations/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: evaluationServiceCB
+                    fallbackUri: forward:/fallback/evaluation-service
+
+            - id: notifications-service
+              uri: lb://notifications-service
+              predicates:
+                - Path=/api/notifications/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: notificationsServiceCB
+                    fallbackUri: forward:/fallback/notifications-service
+
+            - id: reporting-service
+              uri: http://localhost:8086
+              predicates:
+                - Path=/api/reports/**
+
+            - id: message-service
+              uri: lb://message-service
+              predicates:
+                - Path=/api/messages/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: messageServiceCB
+                    fallbackUri: forward:/fallback/message-service
+
+            - id: workflow-service
+              uri: lb://workflow-service
+              predicates:
+                - Path=/api/workflow/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: workflowServiceCB
+                    fallbackUri: forward:/fallback/workflow-service
+                    
+            - id: gateway-test
+              uri: http://localhost:8090
+              predicates:
+                - Path=/api/test
+
+# ==========================
+# RESILIENCE4J CIRCUIT BREAKER
+# ==========================
+resilience4j:
+  circuitbreaker:
+    instances:
+      userServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      offersServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      applicationsServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      conventionsServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      evaluationServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      notificationsServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      reportingServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      messageServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      workflowServiceCB:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+
+# ==========================
+# EUREKA CLIENT
+# ==========================
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-admin:pkf@localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+    enabled: true
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${server.port}
+
+
+
+# ==========================
+# JWT (partagé avec les autres services)
+# ==========================
+jwt:
+  secret: "VGhpcy1pcy1hLXN1cGVyLWxvbmcgYW5kLWNvbXBsZXgtc2VjcmV0LXN0cmluZy1lbmNvZGVkLWluLWJhc2U2NA"
+  expiration-ms: 86400000

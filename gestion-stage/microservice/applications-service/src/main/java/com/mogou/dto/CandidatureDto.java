@@ -1,0 +1,26 @@
+package com.mogou.dto;
+
+import com.mogou.enums.StatutCandidature;
+import lombok.Builder;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+public class CandidatureDto {
+    private Long id;
+    private Long etudiantId;
+    private Long offreId;
+    private StatutCandidature statut;
+    private LocalDateTime datePostulation;
+    private boolean hasCv;
+    private boolean hasLettreMotivation;
+    private String commentaires;
+    
+    // Informations enrichies de l'offre
+    private String offerTitle;
+    private String companyName;
+    private String location;
+    private String duration;
+}

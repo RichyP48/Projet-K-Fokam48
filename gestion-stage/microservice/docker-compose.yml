@@ -1,0 +1,245 @@
+
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: microservice_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pkf
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    networks:
+      - microservice-network
+
+  # MinIO pour le stockage de fichiers
+  minio:
+    image: minio/minio
+    container_name: minio-storage
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    networks:
+      - microservice-network
+
+  # RabbitMQ pour la messagerie
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-broker
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservice-network
+
+  # Config Server
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - microservice-network
+
+
+  # Eureka Server
+  eureka-server:
+    build: ./Eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8090:8090"
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-admin:pkf@eureka-server:8761/eureka/
+
+  # User Service
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/microservice_db
+
+  # Offers Service
+  offers-service:
+    build: ./offers-service
+    container_name: offers-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/offer_db
+
+  # Applications Service
+  applications-service:
+    build: ./applications-service
+    container_name: applications-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+      - minio
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/microservice_db
+      MINIO_URL: http://minio:9000
+
+  # Conventions Service
+  conventions-service:
+    build: ./conventions-service
+    container_name: conventions-service
+    ports:
+      - "8095:8095"
+    depends_on:
+      - postgres
+      - minio
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/microservice_db
+      MINIO_URL: http://minio:9000
+
+  # Evaluation Service
+  evaluation-service:
+    build: ./evaluation-service
+    container_name: evaluation-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/microservice_db
+
+  # Notifications Service
+  notifications-service:
+    build: ./notifications-service
+    container_name: notifications-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/microservice_db
+      SPRING_RABBITMQ_HOST: rabbitmq
+
+  # Message Service
+  message-service:
+    build: ./message-service
+    container_name: message-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - postgres
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/microservice_db
+
+  # Reporting Service
+  reporting-service:
+    build: ./reporting-service
+    container_name: reporting-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      - postgres
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/microservice_db
+
+  # Workflow Service
+  workflow-service:
+    build: ./workflow-service
+    container_name: workflow-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      - postgres
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/microservice_db
+
+volumes:
+  postgres_data:
+  minio_data:
+  rabbitmq_data:
+
+networks:
+  microservice-network:
+    driver: bridge

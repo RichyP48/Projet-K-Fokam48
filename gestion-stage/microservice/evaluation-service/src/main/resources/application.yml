@@ -1,0 +1,58 @@
+server:
+  port: 8083 # Port pour le service d'évaluation
+
+spring:
+  application:
+    name: evaluation-service
+  sql:
+    init:
+      mode: always
+
+  # ===============================================
+  # Configuration de la base de données PostgreSQL
+  # ===============================================
+  datasource:
+    url: jdbc:postgresql://localhost:5432/evaluations_db
+    username: postgres
+    password: pkf
+    driver-class-name: org.postgresql.Driver
+
+  # ===============================================
+  # Configuration de JPA et Hibernate
+  # ===============================================
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# ===============================================
+# Configuration du client MinIO pour le stockage
+# ===============================================
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: evaluations
+
+# ===============================================
+# Configuration du client Eureka pour la découverte de services
+# ===============================================
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    hostname: localhost
+
+# ===============================================
+# Configuration pour la validation des JWT
+# ===============================================
+jwt:
+  secret: "hgsdfjksdhfkjshfkjshfkjshdfkjshdfkjshfkjshdfkjsh"
+  expiration-ms: 86400000 # 24 heures
+

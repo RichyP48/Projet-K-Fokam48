@@ -1,0 +1,11 @@
+package com.mogou.model;
+
+public enum StageEvent {
+    ACCEPTER_CANDIDATURE,
+    GENERER_CONVENTION,
+    VALIDER_CONVENTION,
+    SIGNER_CONVENTION,
+    APPROUVER_STAGE,
+    TERMINER_STAGE,
+    CORRIGER_ERREUR
+}

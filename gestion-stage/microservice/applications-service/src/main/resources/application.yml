@@ -1,0 +1,73 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: applications-service
+  sql:
+    init:
+      mode: always
+
+  # Configuration de la base de données PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/candidatures_db
+    username: postgres
+    password: pkf
+    driver-class-name: org.postgresql.Driver
+
+  # Configuration JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Configuration du client MinIO/S3
+minio:
+  endpoint: http://localhost:9010
+  access-key: minioadmin
+  secret-key: minioadmin123
+  bucket-name: candidatures
+
+# Variables d'environnement MinIO
+MINIO_USERNAME: minioadmin
+MINIO_PASSWORD: minioadmin123
+MINIO_ENDPOINT: http://localhost:9010
+MINIO_BUCKET: candidatures
+MINIO_PROJECT_NAME: candidatures
+
+
+# Configuration pour l'upload de fichiers
+file:
+  upload:
+    max-size-mb: 5 # Taille maximale de 5MB par fichier
+    allowed-types:
+      - "application/pdf"
+      - "application/msword"
+      - "application/vnd.openxmlformats-officedocument.wordprocessingml.document" # .docx
+
+# ==========================
+# EUREKA CLIENT
+# ==========================
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-admin:pkf@localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+    enabled: true
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${server.port}
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# ==========================
+# JWT (partagé avec les autres services)
+# ==========================
+jwt:
+  secret: "VGhpcy1pcy1hLXN1cGVyLWxvbmcgYW5kLWNvbXBsZXgtc2VjcmV0LXN0cmluZy1lbmNvZGVkLWluLWJhc2U2NA"
+  expiration-ms: 86400000

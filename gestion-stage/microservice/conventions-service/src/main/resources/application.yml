@@ -1,0 +1,53 @@
+server:
+  port: 8095 # Port pour le service des conventions
+
+spring:
+  application:
+    name: conventions-service
+
+  # Configuration de la base de données PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/conventions_db
+    username: postgres
+    password: pkf
+    driver-class-name: org.postgresql.Driver
+
+  # Configuration de JPA et Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update # Met à jour le schéma de la base de données au démarrage
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Configuration du client MinIO pour le stockage des PDF
+minio:
+  endpoint: http://localhost:9010
+  access-key: minioadmin
+  secret-key: minioadmin123
+  bucket-name: conventions
+
+# Variables d'environnement MinIO
+MINIO_USERNAME: minioadmin
+MINIO_PASSWORD: minioadmin123
+MINIO_ENDPOINT: http://localhost:9010
+MINIO_BUCKET: conventions
+MINIO_PROJECT_NAME: conventions
+
+# Configuration du client Eureka pour la découverte de services
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-admin:pkf@localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    hostname: localhost
+
+# ==========================
+# JWT (partagé avec les autres services)
+# ==========================
+jwt:
+  secret: "VGhpcy1pcy1hLXN1cGVyLWxvbmcgYW5kLWNvbXBsZXgtc2VjcmV0LXN0cmluZy1lbmNvZGVkLWluLWJhc2U2NA"
+  expiration-ms: 86400000

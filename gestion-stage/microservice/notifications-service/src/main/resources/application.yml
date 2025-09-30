@@ -1,0 +1,66 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: notifications-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/notifications_db
+    username: postgres
+    password: pkf
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  # ===============================================
+  # SECTION À AJOUTER POUR CORRIGER L'ERREUR
+  # ===============================================
+  mail:
+    host: smtp.gmail.com 
+    port: 2525 # Port de votre serveur SMTP
+    username: richardmogou99@gmail.com
+    password: Richard_Mogou48 # Votre mot de passe
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/emails/
+    suffix: .html
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-admin:pkf@localhost:8761/eureka/
+jwt:
+  secret: "VGhpcy1pcy1hLXN1cGVyLWxvbmcgYW5kLWNvbXBsZXgtc2VjcmV0LXN0cmluZy1lbmNvZGVkLWluLWJhc2U2NA"
+app:
+  rabbitmq:
+    exchange-name: "notifications_exchange"
+    queue-name: "notifications_queue"
+    routing-key: "notifications.routing.key"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+

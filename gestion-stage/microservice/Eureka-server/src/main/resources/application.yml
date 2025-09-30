@@ -1,0 +1,26 @@
+server:
+  port: 8761 # Port standard pour Eureka
+
+spring:
+  application:
+    name: eureka-server
+
+  # Configuration de la sécurité basique pour l'accès au tableau de bord
+  security:
+    user:
+      name: eureka-admin
+      password: pkf
+
+eureka:
+  instance:
+    hostname: localhost
+
+  client:
+    # Un serveur Eureka standalone ne s’enregistre pas auprès de lui-même
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka/
+
+  server:
+    enable-self-preservation: true

@@ -1,0 +1,47 @@
+server:
+  port: 8080 # Port pour le service utilisateur
+
+spring:
+  application:
+    name: user-service
+  sql:
+    init:
+      mode: always
+
+  # Configuration de la base de données PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/user_db
+    username: postgres
+    password: pkf
+    driver-class-name: org.postgresql.Driver
+
+  # Configuration JPA et Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Configuration du client Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-admin:pkf@localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${server.port}
+
+# ===============================================
+# SECTION CRUCIALE À AJOUTER OU CORRIGER
+# ===============================================
+jwt:
+  # IMPORTANT : Ce secret doit être une chaîne longue, complexe et encodée en Base64.
+  # Il doit être absolument identique dans tous vos microservices qui valident des tokens.
+  # Pour générer un secret, vous pouvez utiliser un site comme "base64encode.org" avec une phrase longue.
+  secret: "VGhpcy1pcy1hLXN1cGVyLWxvbmcgYW5kLWNvbXBsZXgtc2VjcmV0LXN0cmluZy1lbmNvZGVkLWluLWJhc2U2NA"
+  expiration-ms: 86400000 # Durée de validité d'un token : 24 heures
+
