@@ -116,8 +116,16 @@ import { NotificationService } from '../../../services/notification.service';
             </div>
              <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700">Domaine</label>
-              <input [(ngModel)]="currentOffer.domain" name="titre" required 
+              <select [(ngModel)]="currentOffer.domain" name="domaine" required 
                      class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                <option value="">Sélectionnez un domaine</option>
+                <option value="INFORMATIQUE">Informatique</option>
+                <option value="MARKETING">Marketing</option>
+                <option value="RH">Ressources Humaines</option>
+                <option value="FINANCE">Finance</option>
+                <option value="COMMUNICATION">Communication</option>
+                <option value="INGENIERIE">Ingénierie</option>
+              </select>
             </div>
             
             <div class="md:col-span-2">
@@ -139,8 +147,8 @@ import { NotificationService } from '../../../services/notification.service';
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700">Date de début</label>
-              <input [(ngModel)]="currentOffer.startDate" name="dateDebut" type="date" required 
+              <label class="block text-sm font-medium text-gray-700">Date d'expiration</label>
+              <input [(ngModel)]="currentOffer.expirationDate" name="dateExpiration" type="date" required 
                      class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
             </div>
             
@@ -241,20 +249,16 @@ export class CompanyOffersComponent implements OnInit {
   }
 
   saveOffer() {
-    // Mapper les données frontend vers le format backend
+    // Mapper les données frontend vers le format backend français
     const offerData = {
-      title: this.currentOffer.title,
+      titre: this.currentOffer.title,
       description: this.currentOffer.description,
-      domain: this.currentOffer.domain,
-      duration: parseInt(this.currentOffer.duration) || 0,
-      location: this.currentOffer.location,
-      requirements: this.currentOffer.requiredSkills,
-      startDate: this.currentOffer.startDate,
-      salary: this.currentOffer.salaire || 0,
-      isRemote: false,
-      applicationDeadline: this.currentOffer.startDate,
-      maxApplications: 50,
-      status: 'ACTIVE'
+      domaine: this.currentOffer.domain,
+      duree: parseInt(this.currentOffer.duration) || 0,
+      localisation: this.currentOffer.location,
+      competencesRequises: this.currentOffer.requiredSkills,
+      dateExpiration: this.currentOffer.expirationDate,
+      entrepriseId: 1 // ID de l'entreprise connectée (à récupérer dynamiquement)
     };
 
     console.log('📤 submission detected:', this.currentOffer);
@@ -263,6 +267,10 @@ export class CompanyOffersComponent implements OnInit {
 
     // Test direct sur le service offers (port 8081) au lieu de la Gateway (8090)
     console.log('📤 Testing direct service call...');
+    
+    // Test direct sur offers-service (port 8081)
+    const directUrl = 'http://localhost:8081/api/offers';
+    console.log('🔄 Testing direct service call to:', directUrl);
     
     this.offerService.createOffer(offerData as any).subscribe({
       next: (response) => {
@@ -323,13 +331,15 @@ export class CompanyOffersComponent implements OnInit {
   }
 
   private getEmptyOffer(): any {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 30); // 30 jours dans le futur
+    
     return {
       title: '',
       description: '',
       requiredSkills: '',
       duration: '',
-      startDate: new Date(),
-      dateFin: new Date(),
+      expirationDate: tomorrow.toISOString().split('T')[0],
       salaire: 0,
       location: '',
       domain: '',
