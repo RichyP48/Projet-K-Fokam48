@@ -25,10 +25,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+        System.out.println("🔍 Gateway Filter - Processing request: " + request.getURI().getPath());
 
-        final List<String> publicEndpoints = List.of("/api/auth/register", "/api/auth/login");
+        final List<String> publicEndpoints = List.of("/api/auth/register", "/api/auth/login", "/api/academic", "/api/offers");
 
         if (publicEndpoints.stream().anyMatch(uri -> request.getURI().getPath().contains(uri))) {
+            System.out.println("🔓 Gateway - Public endpoint, skipping auth: " + request.getURI().getPath());
             return chain.filter(exchange);
         }
 
@@ -39,12 +41,17 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         final String token = authHeader.substring(7);
+        System.out.println("🔍 Gateway - Token received: " + token.substring(0, Math.min(50, token.length())) + "...");
+        System.out.println("🔍 Gateway - Path: " + request.getURI().getPath());
 
         try {
             if (!jwtUtil.validateToken(token)) {
+                System.out.println("❌ Gateway - Token validation failed");
                 return this.onError(exchange, "Le token est invalide ou a expiré.", HttpStatus.UNAUTHORIZED);
             }
+            System.out.println("✅ Gateway - Token validated successfully");
         } catch (Exception e) {
+            System.out.println("❌ Gateway - Token validation error: " + e.getMessage());
             return this.onError(exchange, "Le token est invalide ou a expiré.", HttpStatus.UNAUTHORIZED);
         }
 
@@ -61,11 +68,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private ServerHttpRequest addClaimsToHeader(ServerHttpRequest request, String token) {
         try {
             Claims claims = jwtUtil.getClaimsFromToken(token);
+            String username = claims.getSubject();
+            String role = String.valueOf(claims.get("role"));
+            System.out.println("🔍 Gateway - Adding headers: Username=" + username + ", Role=" + role);
             return request.mutate()
-                    .header("X-User-Username", claims.getSubject())
-                    .header("X-User-Roles", String.valueOf(claims.get("roles")))
+                    .header("X-User-Username", username)
+                    .header("X-User-Roles", role)
                     .build();
         } catch (Exception e) {
+            System.out.println("❌ Gateway - Error adding headers: " + e.getMessage());
             return request;
         }
     }

@@ -161,13 +161,16 @@ export class LoginComponent implements OnInit {
           let redirectUrl = '/home';
           switch (response.role) {
             case 'STUDENT':
+            case 'ETUDIANT':
               redirectUrl = '/student/dashboard';
               break;
             case 'COMPANY':
+            case 'ENTREPRISE':
               redirectUrl = '/company/dashboard';
               break;
             case 'FACULTY':
-              redirectUrl = '/faculty/dashboard';
+            case 'ENSEIGNANT':
+              redirectUrl = '/enseignant/dashboard';
               break;
             case 'ADMIN':
               redirectUrl = '/admin/dashboard';

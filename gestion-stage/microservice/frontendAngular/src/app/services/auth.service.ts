@@ -73,7 +73,7 @@ export class AuthService {
     const studentData = {
       email: registrationData.email,
       password: registrationData.password,
-      role: 'STUDENT',
+      role: 'ETUDIANT',
       profile: {
         nom: registrationData.lastName,
         prenom: registrationData.firstName,
@@ -106,6 +106,32 @@ export class AuthService {
       tap(response => this.handleAuthResponse(response)),
       catchError(error => {
         console.error('Company registration error:', error);
+        return throwError(() => new Error(error.error || 'Registration failed. Please try again.'));
+      })
+    );
+  }
+
+  registerTeacher(registrationData: any): Observable<AuthResponse> {
+    const teacherData = {
+      email: registrationData.contactEmail,
+      password: registrationData.password,
+      role: 'ENSEIGNANT',
+      profile: {
+        nom: registrationData.lastName,
+        prenom: registrationData.firstName,
+        telephone: registrationData.phoneNumber,
+        schoolId: registrationData.schoolId,
+        facultyId: registrationData.facultyId,
+        departmentId: registrationData.departmentId,
+        specialty: registrationData.specialty,
+        bio: registrationData.bio
+      }
+    };
+    
+    return this.apiService.post<AuthResponse>('/auth/register/teacher', teacherData).pipe(
+      tap(response => this.handleAuthResponse(response)),
+      catchError(error => {
+        console.error('Teacher registration error:', error);
         return throwError(() => new Error(error.error || 'Registration failed. Please try again.'));
       })
     );
@@ -251,7 +277,12 @@ export class AuthService {
     console.log('🔓 Decoded token:', decodedToken);
     
     const userId = decodedToken.userId;
-    const role = decodedToken.role;
+    let role = decodedToken.role;
+    
+    // Map backend roles to frontend roles if needed
+    if (role === 'ENSEIGNANT') {
+      role = 'ENSEIGNANT'; // Keep as ENSEIGNANT for proper handling
+    }
     
     console.log('💾 Saving auth data to localStorage:', {
       userId,

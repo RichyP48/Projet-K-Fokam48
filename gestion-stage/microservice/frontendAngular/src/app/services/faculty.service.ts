@@ -8,9 +8,10 @@ export interface FacultyStudent {
   email: string;
   nom: string;
   prenom: string;
-  filiere: string;
   telephone: string;
   active: boolean;
+  role: string;
+  department?: string;
 }
 
 export interface FacultyCompany {

@@ -33,10 +33,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // Cette méthode ne gère que les étudiants
-        if (request.getRole() == Role.ENSEIGNANT) {
-            throw new RuntimeException("Utilisez l'endpoint spécifique pour l'enregistrement des écoles");
-        }
+        // Cette méthode gère les étudiants et enseignants
         if (request.getRole() == Role.ENTREPRISE) {
             throw new RuntimeException("Utilisez l'endpoint spécifique pour l'enregistrement des entreprises");
         }
@@ -60,8 +57,8 @@ public class AuthService {
         profile.setAdresse(request.getProfile().getAdresse());
         profile.setStudyLevel(request.getProfile().getStudyLevel());
         
-        // Assignation des références académiques pour les étudiants
-        if (request.getRole() == Role.ETUDIANT) {
+        // Assignation des références académiques pour les étudiants et enseignants
+        if (request.getRole() == Role.ETUDIANT || request.getRole() == Role.ENSEIGNANT) {
             if (request.getProfile().getSchoolId() != null) {
                 profile.setSchool(schoolRepository.findById(request.getProfile().getSchoolId()).orElse(null));
             }
@@ -86,13 +83,36 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-
-        return new AuthResponse(jwtUtil.generateToken(user));
+        try {
+            System.out.println("🔐 Attempting login for: '" + request.getEmail() + "'");
+            System.out.println("🔍 Email length: " + request.getEmail().length());
+            System.out.println("🔍 Email bytes: " + java.util.Arrays.toString(request.getEmail().getBytes()));
+            
+            // Check if user exists first
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> {
+                        System.out.println("❌ No user found with email: '" + request.getEmail() + "'");
+                        return new RuntimeException("Utilisateur non trouvé");
+                    });
+            
+            System.out.println("✅ User found: " + user.getEmail() + ", Role: " + user.getRole() + ", Active: " + user.isActive());
+            System.out.println("🔍 User details: isEnabled=" + user.isEnabled() + ", isAccountNonLocked=" + user.isAccountNonLocked());
+            
+            // Test password manually
+            boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
+            System.out.println("🔑 Password matches: " + passwordMatches);
+            
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+            
+            System.out.println("✅ Authentication successful");
+            return new AuthResponse(jwtUtil.generateToken(user));
+            
+        } catch (Exception e) {
+            System.out.println("❌ Authentication failed: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Les identifications sont erronées");
+        }
     }
 }

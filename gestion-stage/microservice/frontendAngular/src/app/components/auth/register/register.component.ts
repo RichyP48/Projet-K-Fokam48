@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray } from '@angular/forms';
 import { SchoolService, School, Faculty } from '../../../services/school.service';
+import { AcademicService, SchoolDropdown, FacultyDropdown, DepartmentDropdown } from '../../../services/academic.service';
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { Router } from '@angular/router';
@@ -42,7 +43,7 @@ import { Router } from '@angular/router';
                 (click)="selectRole('FACULTY')"
                 [class]="selectedRole === 'FACULTY' ? 'bg-primary-600 text-white' : 'bg-white text-primary-600'"
                 class="px-3 py-2 border border-primary-600 rounded-md text-sm font-medium hover:bg-primary-50">
-                Établissement
+                Enseignant
               </button>
             </div>
           </div>
@@ -146,86 +147,156 @@ import { Router } from '@angular/router';
 
             <!-- Faculty/School Fields -->
             <div *ngIf="selectedRole === 'FACULTY'" class="">
-              <div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Email de contact</label>
-                <input
-                  formControlName="contactEmail"
-                  type="email"
-                  class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  [ngClass]="{ 'border-red-500': registerForm.get('contactEmail')?.invalid && registerForm.get('contactEmail')?.touched }"
-                />
+              <!-- Progress Bar -->
+              <div class="mb-6">
+                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                  <span [class]="currentStep >= 1 ? 'text-primary-600 font-medium' : ''">Informations personnelles</span>
+                  <span [class]="currentStep >= 2 ? 'text-primary-600 font-medium' : ''">Informations établissement</span>
+                  <span [class]="currentStep >= 3 ? 'text-primary-600 font-medium' : ''">Structure académique</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-primary-600 h-2 rounded-full transition-all duration-300" [style.width.%]="(currentStep / 3) * 100"></div>
+                </div>
               </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Nom de l'établissement</label>
-                <input
-                  formControlName="schoolName"
-                  type="text"
-                  class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  [ngClass]="{ 'border-red-500': registerForm.get('schoolName')?.invalid && registerForm.get('schoolName')?.touched }"
-                />
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Adresse</label>
-                <input
-                  formControlName="schoolAddress"
-                  type="text"
-                  class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                />
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea
-                  formControlName="schoolDescription"
-                  rows="2"
-                  class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                ></textarea>
-              </div></div>
-              
-              <!-- Facultés dynamiques -->
-               <div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Facultés et Départements</label>
-                <div formArrayName="faculties">
-                  <div *ngFor="let faculty of getFacultiesArray().controls; let i = index" [formGroupName]="i" class="border p-4 mb-4 rounded-md bg-gray-50">
-                    <div class="flex justify-between items-center mb-2">
-                      <h4 class="font-medium">Faculté {{i + 1}}</h4>
-                      <button type="button" (click)="removeFaculty(i)" class="text-red-600 hover:text-red-800">Supprimer</button>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-3">
-                      <select formControlName="name" class="px-3 py-2 border rounded-md">
-                        <option value="">Sélectionnez une faculté</option>
-                        <option *ngFor="let name of facultyNames" [value]="name">{{name}}</option>
-                      </select>
-                      <input formControlName="description" placeholder="Description (optionnel)" class="px-3 py-2 border rounded-md" />
-                    </div>
-                    
-                    <!-- Départements -->
-                    <div formArrayName="departments" >
-                      <label class="block text-sm font-medium text-gray-600 mb-2">Départements</label>
-                      <div class="flex flex-wrap" *ngFor="let dept of getDepartmentsArray(i).controls; let j = index" [formGroupName]="j" class="grid grid-cols-4 gap-2 mb-2">
-                        <select formControlName="name" class="px-2 py-1 border rounded text-sm">
-                          <option value="">Département</option>
-                          <option *ngFor="let name of departmentNames" [value]="name">{{name}}</option>
-                        </select>
-                        <input formControlName="headTeacherFirstName" placeholder="Prénom enseignant" class="px-2 py-1 border rounded text-sm" />
-                        <input formControlName="headTeacherLastName" placeholder="Nom enseignant" class="px-2 py-1 border rounded text-sm" />
-                        <div class="flex">
-                          <input formControlName="headTeacherEmail" placeholder="Email enseignant" class="px-2 py-1 border rounded text-sm flex-1" />
-                          <button type="button" (click)="removeDepartment(i, j)" class="ml-1 text-red-600 text-sm">×</button>
-                        </div>
-                      </div>
-                      <button type="button" (click)="addDepartment(i)" class="text-blue-600 text-sm hover:underline">+ Ajouter département</button>
-                    </div>
+
+              <!-- Step 1: Personal Information -->
+              <div *ngIf="currentStep === 1">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Informations personnelles</h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Prénom</label>
+                    <input
+                      formControlName="firstName"
+                      type="text"
+                      class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      [ngClass]="{ 'border-red-500': registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched }"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Nom</label>
+                    <input
+                      formControlName="lastName"
+                      type="text"
+                      class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      [ngClass]="{ 'border-red-500': registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched }"
+                    />
                   </div>
                 </div>
-                <button type="button" (click)="addFaculty()" class="text-blue-600 hover:underline">+ Ajouter faculté</button>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Email</label>
+                  <input
+                    formControlName="contactEmail"
+                    type="email"
+                    class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    [ngClass]="{ 'border-red-500': registerForm.get('contactEmail')?.invalid && registerForm.get('contactEmail')?.touched }"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Téléphone</label>
+                  <input
+                    formControlName="phoneNumber"
+                    type="tel"
+                    class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  />
+                </div>
               </div>
-            </div>
+
+              <!-- Step 2: Academic Assignment -->
+              <div *ngIf="currentStep === 2">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Affectation académique</h3>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">École</label>
+                  <select
+                    formControlName="schoolId"
+                    class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    [ngClass]="{ 'border-red-500': registerForm.get('schoolId')?.invalid && registerForm.get('schoolId')?.touched }"
+                    (change)="onSchoolChange($event)">
+                    <option value="">Sélectionnez une école</option>
+                    <option *ngFor="let school of schools" [value]="school.id">{{school.name}}</option>
+                    <option value="new">+ Ajouter une nouvelle école</option>
+                  </select>
+                  <div *ngIf="registerForm.get('schoolId')?.value === 'new'" class="mt-2">
+                    <input
+                      formControlName="newSchoolName"
+                      type="text"
+                      placeholder="Nom de la nouvelle école"
+                      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    />
+                    <input
+                      formControlName="newSchoolAddress"
+                      type="text"
+                      placeholder="Adresse de l'école (optionnel)"
+                      class="block w-full px-3 py-2 mt-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Faculté</label>
+                  <select
+                    formControlName="facultyId"
+                    class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    [ngClass]="{ 'border-red-500': registerForm.get('facultyId')?.invalid && registerForm.get('facultyId')?.touched }"
+                    [disabled]="!selectedSchoolId"
+                    (change)="onFacultyChange($event)">
+                    <option value="">Sélectionnez une faculté</option>
+                    <option *ngFor="let faculty of faculties" [value]="faculty.id">{{faculty.name}}</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Département</label>
+                  <select
+                    formControlName="departmentId"
+                    class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    [ngClass]="{ 'border-red-500': registerForm.get('departmentId')?.invalid && registerForm.get('departmentId')?.touched }"
+                    [disabled]="!selectedFacultyId">
+                    <option value="">Sélectionnez un département</option>
+                    <option *ngFor="let department of departments" [value]="department.id">{{department.name}}</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Step 3: Additional Information -->
+              <div *ngIf="currentStep === 3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Informations complémentaires</h3>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Spécialité</label>
+                  <input
+                    formControlName="specialty"
+                    type="text"
+                    placeholder="Ex: Intelligence Artificielle, Réseaux..."
+                    class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Biographie (optionnel)</label>
+                  <textarea
+                    formControlName="bio"
+                    rows="3"
+                    placeholder="Présentez-vous brièvement..."
+                    class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Navigation Buttons -->
+              <div class="flex justify-between mt-6">
+                <button
+                  type="button"
+                  (click)="previousStep()"
+                  [disabled]="currentStep === 1"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                  Précédent
+                </button>
+                <button
+                  type="button"
+                  (click)="nextStep()"
+                  [disabled]="currentStep === 3"
+                  class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                  Suivant
+                </button>
+              </div>
             </div>
 
             <!-- Company Fields -->
@@ -252,10 +323,20 @@ import { Router } from '@angular/router';
               
               <div>
                 <label class="block text-sm font-medium text-gray-700">Secteur d'activité</label>
-                <input
+                <select
                   formControlName="companyIndustrySector"
-                  type="text"
                   class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  (change)="onIndustrySectorSelect($event)">
+                  <option value="">Sélectionnez un secteur</option>
+                  <option *ngFor="let sector of industrySectors" [value]="sector">{{sector}}</option>
+                  <option value="autre">Autre (saisir manuellement)</option>
+                </select>
+                <input
+                  *ngIf="registerForm.get('companyIndustrySector')?.value === 'autre'"
+                  type="text"
+                  placeholder="Saisissez votre secteur d'activité"
+                  class="block w-full px-3 py-2 mt-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  (input)="updateIndustrySector($event)"
                 />
               </div>
             </div>
@@ -279,7 +360,7 @@ import { Router } from '@angular/router';
             <!-- Submit Button -->
             <button
               type="submit"
-              [disabled]="registerForm.invalid || isLoading"
+              [disabled]="registerForm.invalid || isLoading || (selectedRole === 'FACULTY' && currentStep < 3)"
               class="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span *ngIf="!isLoading">S'inscrire</span>
@@ -321,20 +402,40 @@ export class RegisterComponent implements OnInit {
   selectedRole: 'STUDENT' | 'COMPANY' | 'FACULTY' = 'STUDENT';
   isLoading = false;
   errorMessage = '';
-  schools: School[] = [];
-  faculties: Faculty[] = [];
-  departments: any[] = [];
+  schools: SchoolDropdown[] = [];
+  faculties: FacultyDropdown[] = [];
+  departments: DepartmentDropdown[] = [];
   selectedSchoolId: number | null = null;
   selectedFacultyId: number | null = null;
+  currentStep: number = 1;
   
   // Arrays pour les noms (pour l'inscription d'établissement)
   schoolNames: string[] = [];
   facultyNames: string[] = [];
   departmentNames: string[] = [];
+  
+  // Secteurs d'activité pour les entreprises
+  industrySectors: string[] = [
+    'Technologies de l\'information',
+    'Finance et Banque',
+    'Santé et Médecine',
+    'Education',
+    'Commerce et Vente',
+    'Industrie manufacturière',
+    'Construction et BTP',
+    'Transport et Logistique',
+    'Agriculture et Agroalimentaire',
+    'Tourisme et Hôtellerie',
+    'Médias et Communication',
+    'Energie et Environnement',
+    'Conseil et Services',
+    'Recherche et Développement'
+  ];
 
   constructor(
     private fb: FormBuilder, 
     private schoolService: SchoolService,
+    private academicService: AcademicService,
     private authService: AuthService,
     private notificationService: NotificationService,
     private router: Router
@@ -348,35 +449,40 @@ export class RegisterComponent implements OnInit {
   }
 
   loadNameArrays(): void {
-    console.log('Loading name arrays...');
-    
-    this.schoolService.getAllSchoolNames().subscribe({
-      next: (names) => {
-        console.log('School names loaded:', names);
-        this.schoolNames = names;
+    // Charger les noms d'écoles depuis le backend
+    this.academicService.getSchoolDropdowns().subscribe({
+      next: (schools) => {
+        this.schoolNames = schools.map(school => school.name);
       },
-      error: (error) => console.error('Error loading school names:', error)
+      error: () => {
+        this.schoolNames = ['Université de Yaoundé I', 'Université de Douala', 'Université de Dschang'];
+      }
     });
     
-    this.schoolService.getAllFacultyNames().subscribe({
-      next: (names) => {
-        console.log('Faculty names loaded:', names);
-        this.facultyNames = names;
+    // Charger les noms de facultés depuis le backend
+    this.academicService.getAllFacultyNames().subscribe({
+      next: (facultyNames) => {
+        this.facultyNames = facultyNames;
       },
-      error: (error) => console.error('Error loading faculty names:', error)
+      error: () => {
+        this.facultyNames = ['Faculté des Sciences', 'Faculté de Médecine', 'École Normale Supérieure', 'Faculté des Sciences Économiques', 'Faculté des Lettres', 'Génie Informatique', 'Génie Civil'];
+      }
     });
     
-    this.schoolService.getAllDepartmentNames().subscribe({
-      next: (names) => {
-        console.log('Department names loaded:', names);
-        this.departmentNames = names;
+    // Charger les noms de départements depuis le backend
+    this.academicService.getAllDepartmentNames().subscribe({
+      next: (departmentNames) => {
+        this.departmentNames = departmentNames;
       },
-      error: (error) => console.error('Error loading department names:', error)
+      error: () => {
+        this.departmentNames = ['Informatique', 'Mathématiques', 'Physique', 'Médecine Générale', 'Chirurgie', 'Enseignement Primaire', 'Économie', 'Gestion', 'Français', 'Génie Logiciel', 'Bâtiment et Travaux Publics'];
+      }
     });
   }
 
   selectRole(role: 'STUDENT' | 'COMPANY' | 'FACULTY') {
     this.selectedRole = role;
+    this.currentStep = 1;
     this.registerForm = this.createForm();
   }
 
@@ -395,11 +501,17 @@ export class RegisterComponent implements OnInit {
       });
     } else if (this.selectedRole === 'FACULTY') {
       return this.fb.group({
+        firstName: ['', [Validators.required]],
+        lastName: ['', [Validators.required]],
         contactEmail: ['', [Validators.required, Validators.email]],
-        schoolName: ['', [Validators.required]],
-        schoolAddress: [''],
-        schoolDescription: [''],
-        faculties: this.fb.array([this.createFacultyGroup()]),
+        phoneNumber: [''],
+        schoolId: ['', [Validators.required]],
+        newSchoolName: [''],
+        newSchoolAddress: [''],
+        facultyId: ['', [Validators.required]],
+        departmentId: ['', [Validators.required]],
+        specialty: [''],
+        bio: [''],
         password: ['', [Validators.required, Validators.minLength(6)]]
       });
     } else {
@@ -414,32 +526,52 @@ export class RegisterComponent implements OnInit {
 
   loadSchools(): void {
     console.log('Loading schools...');
-    this.schoolService.getAllSchools().subscribe({
+    this.academicService.getSchoolDropdowns().subscribe({
       next: (schools) => {
         console.log('Schools loaded:', schools);
-        this.schools = schools;
+        this.schools = schools || [];
       },
       error: (error) => {
         console.error('Error loading schools:', error);
+        this.schools = [
+          { id: 1, name: 'Université de Yaoundé I' },
+          { id: 2, name: 'Université de Douala' },
+          { id: 3, name: 'Université de Dschang' }
+        ];
+        this.notificationService.showError('Utilisation des données par défaut - Vérifiez la connexion au serveur');
       }
     });
   }
 
   onSchoolChange(event: any): void {
-    const schoolId = parseInt(event.target.value);
-    this.selectedSchoolId = schoolId;
+    const schoolValue = event.target.value;
     this.faculties = [];
     this.departments = [];
     this.registerForm.get('facultyId')?.setValue('');
     this.registerForm.get('departmentId')?.setValue('');
     
+    if (schoolValue === 'new') {
+      this.selectedSchoolId = null;
+      // Clear faculties and departments for new school
+      return;
+    }
+    
+    const schoolId = parseInt(schoolValue);
+    this.selectedSchoolId = schoolId;
+    
     if (schoolId) {
-      this.schoolService.getFacultiesBySchool(schoolId).subscribe({
+      this.academicService.getFacultyDropdownsBySchool(schoolId).subscribe({
         next: (faculties) => {
+          console.log('Faculties loaded for school', schoolId, ':', faculties);
           this.faculties = faculties;
         },
         error: (error) => {
           console.error('Error loading faculties:', error);
+          this.faculties = [
+            { id: 1, name: 'Sciences' },
+            { id: 2, name: 'Lettres et Sciences Humaines' },
+            { id: 3, name: 'Ingénierie' }
+          ];
         }
       });
     }
@@ -452,12 +584,19 @@ export class RegisterComponent implements OnInit {
     this.registerForm.get('departmentId')?.setValue('');
     
     if (facultyId) {
-      this.schoolService.getDepartmentsByFaculty(facultyId).subscribe({
+      this.academicService.getDepartmentDropdownsByFaculty(facultyId).subscribe({
         next: (departments) => {
+          console.log('Departments loaded for faculty', facultyId, ':', departments);
           this.departments = departments;
         },
         error: (error) => {
           console.error('Error loading departments:', error);
+          // Fallback data
+          this.departments = [
+            { id: 1, name: 'Informatique' },
+            { id: 2, name: 'Mathématiques' },
+            { id: 3, name: 'Génie Civil' }
+          ];
         }
       });
     }
@@ -471,6 +610,12 @@ export class RegisterComponent implements OnInit {
       let formData = { ...this.registerForm.value };
       
       if (this.selectedRole === 'FACULTY') {
+        // Use custom school name if 'autre' was selected
+        if (formData.schoolName === 'autre' && formData.customSchoolName) {
+          formData.schoolName = formData.customSchoolName;
+        }
+        delete formData.customSchoolName;
+        
         const facultyNamesString = formData.facultyNames || '';
         formData.facultyNames = facultyNamesString
           .split(',')
@@ -489,7 +634,7 @@ export class RegisterComponent implements OnInit {
           registerObservable = this.authService.registerCompany(formData);
           break;
         case 'FACULTY':
-          registerObservable = this.authService.registerSchool(formData);
+          registerObservable = this.authService.registerTeacher(formData);
           break;
         default:
           this.isLoading = false;
@@ -497,12 +642,12 @@ export class RegisterComponent implements OnInit {
       }
       
       registerObservable.subscribe({
-        next: (response) => {
+        next: (response: any) => {
           this.isLoading = false;
           this.notificationService.showSuccess('Inscription réussie ! Vous êtes maintenant connecté.');
           this.router.navigate(['/dashboard']);
         },
-        error: (error) => {
+        error: (error: any) => {
           this.isLoading = false;
           const errorMsg = error.error || 'Erreur lors de l\'inscription';
           this.errorMessage = errorMsg;
@@ -555,6 +700,77 @@ export class RegisterComponent implements OnInit {
   removeDepartment(facultyIndex: number, deptIndex: number): void {
     if (this.getDepartmentsArray(facultyIndex).length > 1) {
       this.getDepartmentsArray(facultyIndex).removeAt(deptIndex);
+    }
+  }
+
+  // Méthodes de récupération lors de la sélection
+  onFacultyNameSelect(event: any, facultyIndex: number): void {
+    const selectedFacultyName = event.target.value;
+    if (selectedFacultyName) {
+      console.log(`Faculté sélectionnée: ${selectedFacultyName} à l'index ${facultyIndex}`);
+      // Ici vous pouvez ajouter une logique pour récupérer des informations supplémentaires
+      // sur la faculté sélectionnée si nécessaire
+    }
+  }
+
+  onDepartmentNameSelect(event: any, facultyIndex: number, deptIndex: number): void {
+    const selectedDepartmentName = event.target.value;
+    if (selectedDepartmentName) {
+      console.log(`Département sélectionné: ${selectedDepartmentName} à la faculté ${facultyIndex}, département ${deptIndex}`);
+      // Ici vous pouvez ajouter une logique pour récupérer des informations supplémentaires
+      // sur le département sélectionné si nécessaire
+    }
+  }
+
+  // Méthode pour récupérer les données d'une école spécifique
+  onSchoolNameSelect(event: any): void {
+    const schoolName = event.target.value;
+    if (schoolName && schoolName !== 'autre') {
+      // Utiliser les données déjà chargées depuis le backend
+      const selectedSchool = this.schools.find(school => school.name === schoolName);
+      if (selectedSchool) {
+        console.log('École sélectionnée:', selectedSchool);
+        // Si on a besoin de plus de détails, on peut faire un appel API spécifique
+        this.academicService.getSchoolDropdowns().subscribe({
+          next: (schools) => {
+            const fullSchoolData = schools.find(s => s.name === schoolName);
+            if (fullSchoolData) {
+              // Ici on pourrait récupérer plus de détails si l'API les fournit
+              console.log('Détails complets de l\'école:', fullSchoolData);
+            }
+          },
+          error: (error) => {
+            console.error('Erreur lors de la récupération des détails de l\'école:', error);
+          }
+        });
+      }
+    }
+  }
+
+  // Méthode pour gérer la sélection du secteur d'activité
+  onIndustrySectorSelect(event: any): void {
+    const sector = event.target.value;
+    if (sector && sector !== 'autre') {
+      console.log('Secteur d\'activité sélectionné:', sector);
+    }
+  }
+
+  // Méthodes pour mettre à jour les champs de saisie manuelle
+
+  updateIndustrySector(event: any): void {
+    this.registerForm.patchValue({companyIndustrySector: event.target.value});
+  }
+
+  // Step navigation methods
+  nextStep(): void {
+    if (this.currentStep < 3) {
+      this.currentStep++;
+    }
+  }
+
+  previousStep(): void {
+    if (this.currentStep > 1) {
+      this.currentStep--;
     }
   }
 }

@@ -2,7 +2,6 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
-import { DashboardLayoutComponent } from '../dashboard-layout/dashboard-layout.component';
 
 
 export interface SidebarItem {
@@ -134,17 +133,8 @@ export class SidebarComponent implements OnInit{
 
   @Output() sidebarToggled = new EventEmitter<boolean>();
 
- constructor(private authService: AuthService, private router: Router, loadUserDatal: DashboardLayoutComponent) {
-    console.log('📱 DashboardLayoutComponent initialized');
-    
-    // Vérifier si l'utilisateur est connecté
-    if (!this.authService.isLoggedIn()) {
-      console.log('❌ User not logged in, redirecting to login');
-      this.router.navigate(['/auth/login']);
-      return;
-    }
-    const loadBal=loadUserDatal.loadUserData();
-    
+ constructor(private authService: AuthService, private router: Router) {
+    console.log('📱 SidebarComponent initialized');
   }
   
   get userInitials(): string {

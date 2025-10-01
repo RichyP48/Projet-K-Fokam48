@@ -1,14 +1,8 @@
 package com.mogou.controller;
 
-import com.mogou.dto.SchoolDto;
-import com.mogou.dto.FacultyDto;
-import com.mogou.dto.DepartmentDto;
-import com.mogou.model.School;
-import com.mogou.model.Faculty;
-import com.mogou.model.Department;
-import com.mogou.repository.SchoolRepository;
-import com.mogou.repository.FacultyRepository;
-import com.mogou.repository.DepartmentRepository;
+import com.mogou.dto.*;
+import com.mogou.model.*;
+import com.mogou.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -61,6 +55,21 @@ public class AcademicController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/dropdowns/schools")
+    public List<SchoolDropdown> getSchoolDropdowns() {
+        return schoolRepository.findAllSchoolDropdown();
+    }
+
+    @GetMapping("/dropdowns/faculties/{schoolId}")
+    public List<FacultyDropdown> getFacultyDropdownsBySchool(@PathVariable Long schoolId) {
+        return facultyRepository.findFacultyDropdownBySchoolId(schoolId);
+    }
+
+    @GetMapping("/dropdowns/departments/{facultyId}")
+    public List<DepartmentDropdown> getDepartmentDropdownsByFaculty(@PathVariable Long facultyId) {
+        return departmentRepository.findDepartmentDropdownByFacultyId(facultyId);
+    }
+
     @GetMapping("/school-names")
     public List<String> getAllSchoolNames() {
         return schoolRepository.findAll().stream()
@@ -82,5 +91,10 @@ public class AcademicController {
                 .map(Department::getName)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/test")
+    public String testConnection() {
+        return "Academic service is working! Time: " + java.time.LocalDateTime.now();
     }
 }

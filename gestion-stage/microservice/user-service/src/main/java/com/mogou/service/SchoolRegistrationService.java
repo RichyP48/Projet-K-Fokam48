@@ -47,6 +47,9 @@ public class SchoolRegistrationService {
         // Profil école
         UserProfile profile = new UserProfile();
         profile.setNom(request.getSchoolName());
+        profile.setPrenom("Établissement");
+        profile.setTelephone("");
+        profile.setAdresse(request.getSchoolAddress() != null ? request.getSchoolAddress() : "");
         schoolUser.setUserProfile(profile);
         profile.setUser(schoolUser);
 
@@ -103,6 +106,8 @@ public class SchoolRegistrationService {
         UserProfile teacherProfile = new UserProfile();
         teacherProfile.setNom(deptDto.getHeadTeacherLastName());
         teacherProfile.setPrenom(deptDto.getHeadTeacherFirstName());
+        teacherProfile.setTelephone("");
+        teacherProfile.setAdresse("");
         teacher.setUserProfile(teacherProfile);
         teacherProfile.setUser(teacher);
 

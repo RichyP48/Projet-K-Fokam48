@@ -3,7 +3,7 @@ package com.mogou.config;
 import com.mogou.jwt.JwtAuthenticationFilter;
 import com.mogou.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.cors.CorsConfigurationSource;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +23,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsService;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

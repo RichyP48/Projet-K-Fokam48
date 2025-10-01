@@ -20,6 +20,11 @@ spring:
               predicates:
                 - Path=/api/auth/**
                     
+            - id: user-service-faculty
+              uri: lb://user-service
+              predicates:
+                - Path=/api/users/faculty/**
+                
             - id: user-service-users
               uri: lb://user-service
               predicates:

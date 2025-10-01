@@ -1,0 +1,39 @@
+{
+  "contactEmail": "test@school.com",
+  "password": "password123",
+  "schoolName": "École Test",
+  "schoolAddress": "123 Rue de l'École, Yaoundé",
+  "schoolDescription": "École de test pour validation du système",
+  "faculties": [
+    {
+      "name": "Faculté des Sciences",
+      "description": "Faculté des sciences exactes",
+      "departments": [
+        {
+          "name": "Informatique",
+          "headTeacherFirstName": "Jean",
+          "headTeacherLastName": "Dupont",
+          "headTeacherEmail": "jean.dupont@school.com"
+        },
+        {
+          "name": "Mathématiques",
+          "headTeacherFirstName": "Marie",
+          "headTeacherLastName": "Martin",
+          "headTeacherEmail": "marie.martin@school.com"
+        }
+      ]
+    },
+    {
+      "name": "Faculté de Génie",
+      "description": "Faculté d'ingénierie",
+      "departments": [
+        {
+          "name": "Génie Civil",
+          "headTeacherFirstName": "Paul",
+          "headTeacherLastName": "Bernard",
+          "headTeacherEmail": "paul.bernard@school.com"
+        }
+      ]
+    }
+  ]
+}

@@ -10,7 +10,7 @@ import { FacultyService, FacultyStudent } from '../../../../services/faculty.ser
   template: `
     <div class="container mx-auto px-4 py-8">
       <div class="mb-6">
-        <a routerLink="/faculty" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+        <a routerLink="/enseignant/dashboard" class="inline-flex items-center text-blue-600 hover:text-blue-800">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -46,7 +46,7 @@ import { FacultyService, FacultyStudent } from '../../../../services/faculty.ser
                 <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filière</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Département</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Téléphone</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                 </tr>
@@ -61,7 +61,7 @@ import { FacultyService, FacultyStudent } from '../../../../services/faculty.ser
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                      {{student.filiere || 'Non spécifiée'}}
+                      {{student.department || 'Non spécifié'}}
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">

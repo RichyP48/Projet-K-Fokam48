@@ -54,4 +54,8 @@ export class SchoolService {
   getAllDepartmentNames(): Observable<string[]> {
     return this.apiService.get<string[]>('/academic/department-names');
   }
+
+  testConnection(): Observable<string> {
+    return this.apiService.get<string>('/academic/test');
+  }
 }

@@ -128,6 +128,8 @@ public ResponseEntity<Page<OffreStageDto>> searchOffres(
         return ResponseEntity.ok(response);
     }
     
+
+    
     @PostMapping("/test-create")
     public ResponseEntity<Map<String, Object>> testCreate(@RequestBody Map<String, Object> data) {
         Map<String, Object> response = new HashMap<>();

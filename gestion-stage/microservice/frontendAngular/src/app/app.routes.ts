@@ -53,7 +53,7 @@ export const routes: Routes = [
     data: { roles: [UserRole.FACULTY] },
     children: [
       { path: 'dashboard', loadComponent: () => import('./components/faculty/pages/faculty-dashboard/faculty-dashboard.component').then(m => m.FacultyDashboardComponent) },
-      { path: 'etudiants', loadComponent: () => import('./components/faculty/faculty-students/faculty-students.component').then(m => m.FacultyStudentsComponent) },
+      { path: 'etudiants', loadComponent: () => import('./components/faculty/pages/faculty-students/faculty-students.component').then(m => m.FacultyStudentsComponent) },
       { path: 'entreprises', loadComponent: () => import('./components/faculty/pages/faculty-companies/faculty-companies.component').then(m => m.FacultyCompaniesComponent) },
       { path: 'conventions', loadComponent: () => import('./components/faculty/pages/faculty-agreements/faculty-agreements.component').then(m => m.FacultyAgreementsComponent) },
       { path: 'rapports', loadComponent: () => import('./components/faculty/faculty-reports/faculty-reports.component').then(m => m.FacultyReportsComponent) }
@@ -79,7 +79,24 @@ export const routes: Routes = [
     component: DashboardLayoutComponent,
     canActivate: [AuthGuard],
     children: [
-      { path: '', loadComponent: () => import('./components/offers/offers-list.component').then(m => m.OffersListComponent) }
+      { path: '', loadComponent: () => import('./components/offers/offers-list.component').then(m => m.OffersListComponent) },
+      { path: ':id', loadComponent: () => import('./components/offers/pages/offer-detail/offer-detail.component').then(m => m.OfferDetailComponent) }
+    ]
+  },
+  // {
+  //   path: 'academic',
+  //   component: DashboardLayoutComponent,
+  //   canActivate: [AuthGuard],
+  //   children: [
+  //     { path: '', loadComponent: () => import('./components/academic/academic-list.component').then(m => m.AcademicListComponent) }
+  //   ]
+  // },
+  {
+    path: 'public-offers',
+    component: MainLayoutComponent,
+    children: [
+      { path: '', loadComponent: () => import('./components/offers/offers-list.component').then(m => m.OffersListComponent) },
+      { path: ':id', loadComponent: () => import('./components/offers/pages/offer-detail/offer-detail.component').then(m => m.OfferDetailComponent) }
     ]
   },
   {

@@ -15,10 +15,12 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.security.core.Authentication;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserProfileService userProfileService;
@@ -39,19 +41,20 @@ public class UserController {
     
     // Endpoints spécifiques pour les enseignants
     @GetMapping("/faculty/students")
-    @PreAuthorize("hasRole('ENSEIGNANT')")
-    public ResponseEntity<java.util.List<Map<String, Object>>> getStudentsInMyDepartment(Principal principal) {
+    @PreAuthorize("hasAuthority('ENSEIGNANT')")
+    public ResponseEntity<java.util.List<Map<String, Object>>> getStudentsInMyDepartment(Principal principal, Authentication auth) {
+        log.info("👨‍🏫 Faculty students request - User: {}, Authorities: {}", principal.getName(), auth.getAuthorities());
         return ResponseEntity.ok(userProfileService.getStudentsByTeacherDepartment(principal.getName()));
     }
     
     @GetMapping("/faculty/companies")
-    @PreAuthorize("hasRole('ENSEIGNANT')")
+    @PreAuthorize("hasAuthority('ENSEIGNANT')")
     public ResponseEntity<java.util.List<Map<String, Object>>> getCompaniesForMyStudents(Principal principal) {
         return ResponseEntity.ok(userProfileService.getCompaniesForTeacherStudents(principal.getName()));
     }
     
     @GetMapping("/faculty/test")
-    @PreAuthorize("hasRole('ENSEIGNANT')")
+    @PreAuthorize("hasAuthority('ENSEIGNANT')")
     public ResponseEntity<Map<String, Object>> testFacultyAccess(Principal principal) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Accès autorisé pour l'enseignant");

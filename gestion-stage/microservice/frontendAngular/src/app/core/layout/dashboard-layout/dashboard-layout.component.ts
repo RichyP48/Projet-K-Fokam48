@@ -23,7 +23,7 @@ enum UserRole{
       
       <app-sidebar 
         [menuItems]="menuItems" 
-        [userName]="currentUser. firstName || 'Utilisateur'"
+        [userName]="currentUser.firstName || 'Utilisateur'"
         [userRole]="currentUser.role || 'USER'"
         [isOpen]="sidebarOpen"
         (sidebarToggled)="onSidebarToggle($event)">
@@ -51,7 +51,7 @@ enum UserRole{
               
               <button class="flex items-center space-x-3 text-primary-700 hover:text-primary-900">
                 <div class="text-right">
-                  <p class="text-sm font-medium text-primary-900">{{ currentUser. firstName }}</p>
+                  <p class="text-sm font-medium text-primary-900">{{ currentUser.firstName }}</p>
                   <p class="text-xs text-primary-600">{{ currentUser.role }}</p>
                 </div>
                 <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
@@ -238,6 +238,7 @@ onSidebarToggle(open: boolean) {
       { label: 'Tableau de bord', route: '/admin/dashboard', icon: 'layout-dashboard' },
       { label: 'Utilisateurs', route: '/admin/users', icon: 'users' },
       { label: 'Entreprises', route: '/admin/companies', icon: 'building-2' },
+      { label: 'Structure Académique', route: '/academic', icon: 'graduation-cap' },
       { label: 'Conventions', route: '/admin/agreements', icon: 'file-check' },
       { label: 'Paramètres', route: '/admin/settings', icon: 'settings' },
       { label: 'Rapports', route: '/admin/reports', icon: 'bar-chart' }

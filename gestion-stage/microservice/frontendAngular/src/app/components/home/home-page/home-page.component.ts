@@ -3,7 +3,19 @@ import { Component, OnInit, NgModule } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { OfferService } from '../../../services/offer.service';
+import { ApplicationService } from '../../../services/application.service';
 import { InternshipOffer, InternshipOfferStatus } from '../../../models/offer.model';
+
+interface ExtendedInternshipOffer extends InternshipOffer {
+  domaine?: string;
+  titre?: string;
+  entrepriseId?: number;
+  localisation?: string;
+  lieu?: string;
+  duree?: number;
+  statut?: string;
+  salaire?: number;
+}
 import { UserRole } from '../../../models/user.model';
 import { FormsModule } from '@angular/forms';
 
@@ -12,11 +24,19 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './home-page.component.html',
-  styleUrls: ['./home-page.component.css'] 
+  styleUrls: ['./home-page.component.css'],
+  styles: [`
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  `]
 })
 export class HomePageComponent implements OnInit {
-  offers: InternshipOffer[] = [];
-  filteredOffers: InternshipOffer[] = [];
+  offers: ExtendedInternshipOffer[] = [];
+  filteredOffers: ExtendedInternshipOffer[] = [];
   page: number = 0;
   size: number = 6;
   loading: boolean = false;
@@ -32,7 +52,7 @@ export class HomePageComponent implements OnInit {
     }
   }
 
-  constructor(private authService: AuthService, private offerService: OfferService, private router: Router) {
+  constructor(private authService: AuthService, private offerService: OfferService, private applicationService: ApplicationService, private router: Router) {
     this.loadOffers();
     console.log('HomePageComponent initialisé');
     if (this.authService.isLoggedIn()) {
@@ -43,15 +63,9 @@ export class HomePageComponent implements OnInit {
 
   redirectToOffers() {
     if (this.authService.isLoggedIn()) {
-      if (this.userRole) {
-        this.router.navigate([`/${this.userRole.toLowerCase()}/offers`], { queryParams: { role: this.userRole } });
-      } else {
-        console.error('Le rôle de l\'utilisateur est introuvable.');
-        alert('Erreur: rôle utilisateur introuvable.');
-      }
+      this.router.navigate(['/offers']);
     } else {
-      alert('Veuillez vous connecter pour accéder aux offres de stage.');
-      this.router.navigate(['/auth/login']);
+      this.router.navigate(['/public-offers']);
     }
   }
 
@@ -163,11 +177,16 @@ export class HomePageComponent implements OnInit {
 
   onSearchChange() {
     if (this.searchText) {
-      this.filteredOffers = this.offers.filter(offer =>
-        offer.title.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        offer.domain.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        offer.companyName.toLowerCase().includes(this.searchText.toLowerCase())
-      );
+      this.filteredOffers = this.offers.filter(offer => {
+        const searchLower = this.searchText.toLowerCase();
+        const title = (offer.title || offer.titre || '').toLowerCase();
+        const domain = (offer.domain || offer.domaine || '').toLowerCase();
+        const company = (offer.companyName || '').toLowerCase();
+        
+        return title.includes(searchLower) || 
+               domain.includes(searchLower) || 
+               company.includes(searchLower);
+      });
     } else {
       this.filteredOffers = this.offers; 
     }
@@ -183,5 +202,52 @@ export class HomePageComponent implements OnInit {
       this.page--;
       this.loadOffers();
     }
+  }
+  
+  getStatusClass(status: string): string {
+    const classes = {
+      'ACTIVE': 'bg-green-100 text-green-800',
+      'PUBLIEE': 'bg-green-100 text-green-800',
+      'OPEN': 'bg-green-100 text-green-800',
+      'INACTIVE': 'bg-gray-100 text-gray-800',
+      'CLOSED': 'bg-red-100 text-red-800',
+      'EXPIRED': 'bg-red-100 text-red-800'
+    };
+    return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-800';
+  }
+  
+  selectedOffer: ExtendedInternshipOffer | null = null;
+  
+  openOfferModal(offer: ExtendedInternshipOffer): void {
+    this.selectedOffer = offer;
+  }
+  
+  closeModal(): void {
+    this.selectedOffer = null;
+  }
+  
+  showLoginPrompt(offerId: number): void {
+    const confirmed = confirm('Vous devez être connecté pour postuler à cette offre. Souhaitez-vous vous connecter maintenant ?');
+    if (confirmed) {
+      sessionStorage.setItem('redirectAfterLogin', `/offers/${offerId}`);
+      this.router.navigate(['/auth/login']);
+    }
+  }
+
+  applyToOffer(offerId: number): void {
+    if (!this.isLoggedIn) {
+      this.showLoginPrompt(offerId);
+      return;
+    }
+
+    // Vérifier si l'utilisateur est étudiant
+    if (this.userRole !== UserRole.STUDENT) {
+      alert('Connectez-vous avec un compte étudiant pour postuler à cette offre.');
+      return;
+    }
+
+    // Rediriger vers le formulaire de candidature
+    this.closeModal();
+    this.router.navigate(['/student/apply', offerId]);
   }
 }

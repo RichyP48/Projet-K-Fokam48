@@ -63,21 +63,21 @@ import { FacultyService } from '../../../../services/faculty.service';
       <div class="bg-white rounded-lg shadow-sm border  p-6">
         <h2 class="text-lg font-semibold text-primary-900 mb-4">Actions rapides</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a routerLink="/faculty/students" class="flex items-center p-4 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
+          <a routerLink="/enseignant/etudiants" class="flex items-center p-4 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
             <svg class="w-5 h-5 text-primary-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
               <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
             </svg>
             <span class="text-primary-800 font-medium">Gérer mes étudiants</span>
           </a>
-          <a routerLink="/faculty/companies" class="flex items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+          <a routerLink="/enseignant/entreprises" class="flex items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
             <svg class="w-5 h-5 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
               <path d="M6 12h4h4"></path>
             </svg>
             <span class="text-primary-800 font-medium">Voir les entreprises</span>
           </a>
-          <a routerLink="/faculty/agreements" class="flex items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+          <a routerLink="/enseignant/conventions" class="flex items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
             <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>

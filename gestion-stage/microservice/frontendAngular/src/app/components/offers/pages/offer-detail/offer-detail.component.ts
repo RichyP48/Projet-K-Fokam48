@@ -154,13 +154,23 @@ import { UserRole } from '../../../../models/user.model';
         
         <div class="p-6 border-t bg-gray-50">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div *ngIf="offer.status === 'OPEN' && isStudent" class="flex-1">
-              <a 
-                [routerLink]="['/offers', offer.id, 'apply']"
-                class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Apply Now
-              </a>
+            <div *ngIf="offer.status === 'OPEN'" class="flex-1">
+              <div *ngIf="isLoggedIn && isStudent">
+                <a 
+                  [routerLink]="['/offers', offer.id, 'apply']"
+                  class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Apply Now
+                </a>
+              </div>
+              <div *ngIf="!isLoggedIn">
+                <button 
+                  (click)="showLoginPrompt()"
+                  class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                >
+                  Se connecter pour postuler
+                </button>
+              </div>
             </div>
             
             <div *ngIf="isCompanyOwner" class="flex-1">
@@ -232,7 +242,7 @@ export class OfferDetailComponent implements OnInit {
 
     this.offerService.getOfferById(this.offerId).subscribe({
       next: (offer) => {
-        this.offer = offer;
+        this.offer = offer as unknown as InternshipOffer;
         this.isLoading = false;
       },
       error: (err) => {
@@ -251,7 +261,7 @@ export class OfferDetailComponent implements OnInit {
       
       this.offerService.updateOfferStatus(this.offerId, { status: InternshipOfferStatus.CLOSED }).subscribe({
         next: (updatedOffer) => {
-          this.offer = updatedOffer;
+          this.offer = { ...this.offer, ...updatedOffer } as unknown as InternshipOffer;
           this.isLoading = false;
         },
         error: (err) => {
@@ -270,7 +280,7 @@ export class OfferDetailComponent implements OnInit {
     
     this.offerService.updateOfferStatus(this.offerId, { status: InternshipOfferStatus.OPEN }).subscribe({
       next: (updatedOffer) => {
-        this.offer = updatedOffer;
+        this.offer = { ...this.offer, ...updatedOffer } as unknown as InternshipOffer;
         this.isLoading = false;
       },
       error: (err) => {
@@ -301,6 +311,10 @@ export class OfferDetailComponent implements OnInit {
     return this.authService.isStudent();
   }
 
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
   get isCompanyOwner(): boolean {
     if (!this.offer || !this.authService.isCompany()) return false;
     
@@ -308,5 +322,14 @@ export class OfferDetailComponent implements OnInit {
     // We don't have direct access to the current user's company ID here, 
     // but the backend will handle the authorization check
     return this.authService.isCompany();
+  }
+  
+  showLoginPrompt(): void {
+    const confirmed = confirm('Vous devez être connecté pour postuler à cette offre. Souhaitez-vous vous connecter maintenant ?');
+    if (confirmed) {
+      // Stocker l'ID de l'offre pour rediriger après connexion
+      sessionStorage.setItem('redirectAfterLogin', `/offers/${this.offerId}`);
+      this.router.navigate(['/auth/login']);
+    }
   }
 }

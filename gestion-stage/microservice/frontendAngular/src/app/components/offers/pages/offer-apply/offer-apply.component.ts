@@ -264,13 +264,13 @@ export class OfferApplyComponent implements OnInit {
 
     this.offerService.getOfferById(this.offerId).subscribe({
       next: (offer) => {
-        this.offer = offer;
+        this.offer = offer as unknown as InternshipOffer;
         this.isLoading = false;
         
         // Pre-populate availableFrom with offer start date if available
-        if (offer.startDate) {
+        if ((offer as any).startDate) {
           this.applicationForm.patchValue({
-            availableFrom: this.formatDateForInput(offer.startDate)
+            availableFrom: this.formatDateForInput((offer as any).startDate)
           });
         }
       },
@@ -300,7 +300,8 @@ export class OfferApplyComponent implements OnInit {
      const maxSizeInMB=5;
      const maxSizeInBytes=maxSizeInMB*1024*1024;
      if(file.size>maxSizeInBytes){
-      this.notificationService.error(`File size exceeds the ${maxSizeInMB}MB limit. Please upload a smaller file.`);
+      this.fileError = `File size exceeds the ${maxSizeInMB}MB limit. Please upload a smaller file.`;
+      this.file = null;
     return; 
     }
       

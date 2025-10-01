@@ -38,9 +38,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Vérifier d'abord les headers du Gateway
+        String userEmail = request.getHeader("X-User-Username");
+        String userRoles = request.getHeader("X-User-Roles");
+        
+        if (userEmail != null) {
+            // Authentification via headers du Gateway
+            try {
+                var userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            } catch (Exception e) {
+                System.out.println("❌ Gateway Auth - Error loading user: " + e.getMessage());
+            }
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Fallback vers Authorization header pour tests directs
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -48,34 +67,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        // --- CORRECTION APPLIQUÉE ICI ---
-        userEmail = jwtUtil.getUsernameFromToken(jwt); // Utilisation du bon nom de méthode
+        System.out.println("🔍 JWT Token received: " + jwt.substring(0, Math.min(50, jwt.length())) + "...");
+        
+        try {
+            userEmail = jwtUtil.getUsernameFromToken(jwt);
+            System.out.println("🔍 JWT Filter - Extracted email: " + userEmail);
+        } catch (Exception e) {
+            System.out.println("❌ JWT Filter - Error extracting email: " + e.getMessage());
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-        // Si on a un email et que l'utilisateur n'est pas déjà authentifié
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
             try {
-                // Il est plus robuste de recharger les détails de l'utilisateur pour vérifier qu'il est toujours actif
                 var userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-                
-                System.out.println("🔍 JWT Filter - User: " + userEmail);
+                System.out.println("🔍 JWT Filter - User loaded: " + userEmail);
                 System.out.println("🔍 JWT Filter - Authorities: " + userDetails.getAuthorities());
 
-                if (jwtUtil.validateToken(jwt)) { // Valide le token
+                if (jwtUtil.validateToken(jwt)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
+                            userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    // Mettre à jour le contexte de sécurité
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     System.out.println("✅ JWT Filter - Authentication set for: " + userEmail);
                 } else {
-                    System.out.println("❌ JWT Filter - Invalid token for: " + userEmail);
+                    System.out.println("❌ JWT Filter - Token validation failed for: " + userEmail);
                 }
             } catch (Exception e) {
                 System.out.println("❌ JWT Filter - Error loading user: " + e.getMessage());
+                e.printStackTrace();
             }
         }
         filterChain.doFilter(request, response);
