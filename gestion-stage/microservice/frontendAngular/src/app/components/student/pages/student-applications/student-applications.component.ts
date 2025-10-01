@@ -180,9 +180,8 @@ export class StudentApplicationsComponent implements OnInit {
         this.applications = response.content || response;
       },
       error: (error) => {
-        console.error('Erreur lors du chargement des candidatures:', error);
-        // Afficher une notification d'erreur
-        console.error('Erreur lors du chargement des candidatures');
+        console.warn('Service candidatures indisponible:', error.status);
+        this.applications = [];
       }
     });
   }

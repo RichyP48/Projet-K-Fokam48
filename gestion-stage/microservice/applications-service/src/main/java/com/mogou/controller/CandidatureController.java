@@ -127,6 +127,38 @@ public class CandidatureController {
         return ResponseEntity.ok(CandidatureMapper.toDto(candidatureMiseAJour));
     }
     
+    @PutMapping("/{id}/accept")
+    public ResponseEntity<CandidatureDto> acceptApplication(@PathVariable Long id) {
+        try {
+            Long entrepriseId = userService.getCurrentUserId();
+            logger.info("Company {} accepting application {}", entrepriseId, id);
+            
+            Candidature candidature = candidatureService.acceptApplication(id, entrepriseId);
+            logger.info("Application {} accepted, convention generation triggered", id);
+            
+            return ResponseEntity.ok(CandidatureMapper.toDto(candidature));
+        } catch (Exception e) {
+            logger.error("Error accepting application {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<CandidatureDto> rejectApplication(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            Long entrepriseId = userService.getCurrentUserId();
+            String reason = body.getOrDefault("reason", "Application rejected by company");
+            logger.info("Company {} rejecting application {} with reason: {}", entrepriseId, id, reason);
+            
+            Candidature candidature = candidatureService.rejectApplication(id, entrepriseId, reason);
+            
+            return ResponseEntity.ok(CandidatureMapper.toDto(candidature));
+        } catch (Exception e) {
+            logger.error("Error rejecting application {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @GetMapping("/test")
     public ResponseEntity<String> test() {
         return ResponseEntity.ok("Applications service is working!");
@@ -171,8 +203,16 @@ public class CandidatureController {
     
     @GetMapping("/entreprise/me")
     public ResponseEntity<List<CandidatureDto>> getCompanyApplications() {
-        // Retourner une liste vide pour les tests
-        return ResponseEntity.ok(List.of());
+        try {
+            Long entrepriseId = userService.getCurrentUserId();
+            logger.info("Getting applications for company: {}", entrepriseId);
+            List<CandidatureDto> candidatures = ((CandidatureServiceImpl) candidatureService).findEnrichedByEntrepriseId(entrepriseId);
+            logger.info("Found {} applications for company {}", candidatures.size(), entrepriseId);
+            return ResponseEntity.ok(candidatures);
+        } catch (Exception e) {
+            logger.error("Error getting company applications: {}", e.getMessage(), e);
+            return ResponseEntity.ok(List.of());
+        }
     }
     
     @GetMapping("/entreprise/{entrepriseId}")
@@ -189,6 +229,41 @@ public class CandidatureController {
         Long enseignantId = 3L; // Temporaire
         List<Candidature> candidatures = candidatureService.findByEtudiantId(2L); // Étudiant test
         return ResponseEntity.ok(CandidatureMapper.toDtoList(candidatures));
+    }
+    
+    @GetMapping("/test-offers/{companyId}")
+    public ResponseEntity<Map<String, Object>> testOffersConnection(@PathVariable Long companyId) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            com.mogou.client.OffersClient offersClient = ((CandidatureServiceImpl) candidatureService).getOffersClient();
+            List<com.mogou.client.OfferDto> offers = offersClient.getOffersByCompanyId(companyId);
+            result.put("success", true);
+            result.put("offersCount", offers.size());
+            result.put("offers", offers);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            result.put("errorType", e.getClass().getSimpleName());
+            e.printStackTrace();
+        }
+        return ResponseEntity.ok(result);
+    }
+    
+    @GetMapping("/test-offer/{offerId}")
+    public ResponseEntity<Map<String, Object>> testSingleOffer(@PathVariable Long offerId) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            com.mogou.client.OffersClient offersClient = ((CandidatureServiceImpl) candidatureService).getOffersClient();
+            com.mogou.client.OfferDto offer = offersClient.getOfferById(offerId);
+            result.put("success", true);
+            result.put("offer", offer);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            result.put("errorType", e.getClass().getSimpleName());
+            e.printStackTrace();
+        }
+        return ResponseEntity.ok(result);
     }
 }
 

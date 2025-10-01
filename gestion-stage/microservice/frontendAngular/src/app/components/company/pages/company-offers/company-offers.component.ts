@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { OfferService } from '../../../services/offer.service';
-import { RefreshService } from '../../../services/refresh.service';
+import { OfferService } from '../../../../services/offer.service';
+import { RefreshService } from '../../../../services/refresh.service';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
@@ -201,7 +201,7 @@ export class CompanyOffersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadOffers();
-    this.refreshSubscription = this.refreshService.refresh$.subscribe(component => {
+    this.refreshSubscription = this.refreshService.refresh$.subscribe((component: string) => {
       if (component === 'company-offers') {
         this.loadOffers();
       }

@@ -60,7 +60,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   constructor(private notificationService: NotificationService) {}
 
   ngOnInit(): void {
-    this.loadNotifications();
+    // this.loadNotifications(); // Désactivé temporairement - service notifications indisponible
   }
 
   ngOnDestroy(): void {
@@ -69,7 +69,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   toggleNotifications(): void {
     this.showNotifications = !this.showNotifications;
-    if (this.showNotifications) this.loadNotifications();
+    // if (this.showNotifications) this.loadNotifications(); // Désactivé temporairement
   }
 
   loadNotifications(): void {

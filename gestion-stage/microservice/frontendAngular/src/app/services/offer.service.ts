@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
+import { AuthService } from './auth.service';
 export interface InternshipOffer {
   id: number;
   title: string;
@@ -30,7 +31,7 @@ export interface OfferStatusUpdateRequest {
   providedIn: 'root'
 })
 export class OfferService {
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private authService: AuthService) {}
 
   /**
    * Get paginated list of internship offers with optional filters
@@ -111,10 +112,16 @@ export class OfferService {
    * @param size Page size
    */
   getCompanyOffers(page = 0, size = 10): Observable<any> {
+    const companyId = this.authService.getCurrentUserId();
+    
+    if (!companyId) {
+      throw new Error('User not authenticated');
+    }
+    
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
-      .set('companyId', '1'); // TODO: Récupérer l'ID de l'entreprise connectée
+      .set('companyId', companyId.toString());
     
     return this.apiService.get<any>('/offers', params);
   }

@@ -181,11 +181,13 @@ export class SubmitApplicationComponent implements OnInit {
 
     this.isSubmitting = true;
 
-    this.apiService.submitApplication(
-      this.offerId,
-      this.applicationData.coverLetter,
-      this.selectedFile!
-    ).subscribe({
+    // Créer FormData pour multipart/form-data
+    const formData = new FormData();
+    formData.append('offreId', this.offerId.toString());
+    formData.append('commentaires', this.applicationData.coverLetter);
+    formData.append('cv', this.selectedFile!);
+
+    this.apiService.post('/candidatures', formData).subscribe({
       next: () => {
         this.notificationService.showSuccess('Candidature envoyée avec succès !');
         this.router.navigate(['/student/applications']);

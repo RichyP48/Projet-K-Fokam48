@@ -53,6 +53,18 @@ public class UserController {
         return ResponseEntity.ok(userProfileService.getCompaniesForTeacherStudents(principal.getName()));
     }
     
+    @GetMapping("/company/offers")
+    @PreAuthorize("hasAuthority('ENTREPRISE')")
+    public ResponseEntity<java.util.List<Map<String, Object>>> getMyCompanyOffers(Principal principal) {
+        return ResponseEntity.ok(userProfileService.getOffersByCompanyEmail(principal.getName()));
+    }
+    
+    @GetMapping("/company/applications")
+    @PreAuthorize("hasAuthority('ENTREPRISE')")
+    public ResponseEntity<java.util.List<Map<String, Object>>> getMyCompanyApplications(Principal principal) {
+        return ResponseEntity.ok(userProfileService.getApplicationsByCompanyEmail(principal.getName()));
+    }
+    
     @GetMapping("/faculty/test")
     @PreAuthorize("hasAuthority('ENSEIGNANT')")
     public ResponseEntity<Map<String, Object>> testFacultyAccess(Principal principal) {

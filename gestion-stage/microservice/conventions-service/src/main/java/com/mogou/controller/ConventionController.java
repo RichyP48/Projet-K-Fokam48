@@ -60,6 +60,23 @@ public class ConventionController {
     public ResponseEntity<List<Convention>> getConventionsByEntreprise(@PathVariable Long id) {
         return ResponseEntity.ok(conventionService.findByEntrepriseId(id));
     }
+    
+    @GetMapping("/entreprise")
+    public ResponseEntity<List<Convention>> getMyCompanyConventions(HttpServletRequest request) {
+        try {
+            // Récupérer l'ID entreprise depuis le JWT
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String jwt = authHeader.substring(7);
+                // TODO: Implémenter JwtUtil pour extraire l'userId
+                Long entrepriseId = 1L; // Temporaire - remplacer par extraction JWT
+                return ResponseEntity.ok(conventionService.findByEntrepriseId(entrepriseId));
+            }
+            return ResponseEntity.ok(List.of());
+        } catch (Exception e) {
+            return ResponseEntity.ok(List.of());
+        }
+    }
 
     // ===== ADMIN ENDPOINTS =====
     @GetMapping

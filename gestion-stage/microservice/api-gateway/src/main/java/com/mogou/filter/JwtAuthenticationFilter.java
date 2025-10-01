@@ -27,7 +27,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         System.out.println("🔍 Gateway Filter - Processing request: " + request.getURI().getPath());
 
-        final List<String> publicEndpoints = List.of("/api/auth/register", "/api/auth/login", "/api/academic", "/api/offers");
+        final List<String> publicEndpoints = List.of("/api/auth/register", "/api/auth/login", "/api/academic");
+        final List<String> publicGetEndpoints = List.of("/api/offers");
+        
+        // Allow GET requests to offers for browsing
+        if (publicGetEndpoints.stream().anyMatch(uri -> request.getURI().getPath().contains(uri)) && 
+            "GET".equals(request.getMethod().name())) {
+            System.out.println("🔓 Gateway - Public GET endpoint: " + request.getURI().getPath());
+            return chain.filter(exchange);
+        }
 
         if (publicEndpoints.stream().anyMatch(uri -> request.getURI().getPath().contains(uri))) {
             System.out.println("🔓 Gateway - Public endpoint, skipping auth: " + request.getURI().getPath());
@@ -70,10 +78,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             Claims claims = jwtUtil.getClaimsFromToken(token);
             String username = claims.getSubject();
             String role = String.valueOf(claims.get("role"));
-            System.out.println("🔍 Gateway - Adding headers: Username=" + username + ", Role=" + role);
+            String userId = String.valueOf(claims.get("userId"));
+            System.out.println("🔍 Gateway - Adding headers: Username=" + username + ", Role=" + role + ", UserId=" + userId);
             return request.mutate()
                     .header("X-User-Username", username)
                     .header("X-User-Roles", role)
+                    .header("X-User-Id", userId)
                     .build();
         } catch (Exception e) {
             System.out.println("❌ Gateway - Error adding headers: " + e.getMessage());

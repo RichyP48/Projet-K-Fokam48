@@ -15,4 +15,6 @@ public interface CandidatureService {
     List<Candidature> findByEntrepriseId(Long entrepriseId);
     Candidature findById(Long id);
     Candidature attachDocument(Long candidatureId, MultipartFile file, String documentType);
+    Candidature acceptApplication(Long candidatureId, Long entrepriseId);
+    Candidature rejectApplication(Long candidatureId, Long entrepriseId, String reason);
 }

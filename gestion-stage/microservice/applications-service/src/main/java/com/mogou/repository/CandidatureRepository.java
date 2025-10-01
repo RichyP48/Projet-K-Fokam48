@@ -9,4 +9,5 @@ public interface CandidatureRepository extends JpaRepository<Candidature, Long> 
     boolean existsByEtudiantIdAndOffreId(Long etudiantId, Long offreId);
     List<Candidature> findByEtudiantId(Long etudiantId);
     List<Candidature> findByOffreId(Long offreId);
+    List<Candidature> findByOffreIdIn(List<Long> offreIds);
 }

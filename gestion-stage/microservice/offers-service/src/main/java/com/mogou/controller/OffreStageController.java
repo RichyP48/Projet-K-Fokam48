@@ -23,10 +23,27 @@ import java.util.ArrayList;
 public class OffreStageController {
 
     private final OffreStageService offreStageService;
+    private final com.mogou.repository.OffreStageRepository offreStageRepository;
 
     @PostMapping
-    public ResponseEntity<OffreStageDto> createOffre(@Valid @RequestBody CreateOffreStageRequest request) {
-        return ResponseEntity.ok(offreStageService.createOffre(request));
+    public ResponseEntity<OffreStageDto> createOffre(@Valid @RequestBody CreateOffreStageRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        // Récupérer l'ID entreprise depuis les headers (passé par API Gateway)
+        String userIdHeader = httpRequest.getHeader("X-User-Id");
+        if (userIdHeader != null) {
+            try {
+                Long entrepriseId = Long.parseLong(userIdHeader);
+                request.setEntrepriseId(entrepriseId);
+                System.out.println("🏢 Creating offer for company: " + entrepriseId);
+            } catch (NumberFormatException e) {
+                System.err.println("❌ Invalid user ID in header: " + userIdHeader);
+            }
+        } else {
+            System.err.println("❌ No X-User-Id header found, using request entrepriseId");
+        }
+        System.out.println("📝 Final request entrepriseId: " + request.getEntrepriseId());
+        OffreStageDto created = offreStageService.createOffre(request);
+        System.out.println("✅ Offer created with ID: " + created.getId() + " for company: " + created.getEntrepriseId());
+        return ResponseEntity.ok(created);
     }
 
    @GetMapping
@@ -89,6 +106,48 @@ public ResponseEntity<Page<OffreStageDto>> searchOffres(
         response.put("totalElements", 1);
         
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/test-create")
+    public ResponseEntity<Map<String, Object>> createTestData() {
+        try {
+            com.mogou.model.OffreStage offer1 = new com.mogou.model.OffreStage();
+            offer1.setTitre("Stage Développement Java");
+            offer1.setDescription("Développement d'applications Java Spring Boot");
+            offer1.setDomaine(com.mogou.model.DomaineStage.INFORMATIQUE);
+            offer1.setDuree(6);
+            offer1.setLocalisation("Paris");
+            offer1.setEntrepriseId(2L);
+            offer1.setStatut(com.mogou.model.StatutOffre.PUBLIEE);
+            offer1.setDatePublication(java.time.LocalDate.now());
+            offer1.setDateExpiration(java.time.LocalDate.now().plusDays(30));
+            offer1.setSalaire(1000.0);
+            
+            com.mogou.model.OffreStage offer2 = new com.mogou.model.OffreStage();
+            offer2.setTitre("Stage Marketing Digital");
+            offer2.setDescription("Gestion des campagnes marketing");
+            offer2.setDomaine(com.mogou.model.DomaineStage.MARKETING);
+            offer2.setDuree(4);
+            offer2.setLocalisation("Lyon");
+            offer2.setEntrepriseId(2L);
+            offer2.setStatut(com.mogou.model.StatutOffre.PUBLIEE);
+            offer2.setDatePublication(java.time.LocalDate.now());
+            offer2.setDateExpiration(java.time.LocalDate.now().plusDays(30));
+            offer2.setSalaire(800.0);
+            
+            com.mogou.model.OffreStage saved1 = offreStageRepository.save(offer1);
+            com.mogou.model.OffreStage saved2 = offreStageRepository.save(offer2);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("message", "Test offers created for company 2");
+            result.put("count", 2);
+            result.put("offerIds", List.of(saved1.getId(), saved2.getId()));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
     }
     
     @GetMapping("/simple")
@@ -162,6 +221,83 @@ public ResponseEntity<Page<OffreStageDto>> searchOffres(
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.ok(Page.empty(pageable));
+        }
+    }
+    
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<List<OffreStageDto>> getOffersByCompanyId(@PathVariable Long companyId) {
+        try {
+            System.out.println("🔍 Offers-service: Looking for offers for company " + companyId);
+            Page<OffreStageDto> result = offreStageService.getOffresByEntrepriseId(companyId, PageRequest.of(0, 1000));
+            System.out.println("📋 Offers-service: Found " + result.getContent().size() + " offers for company " + companyId);
+            return ResponseEntity.ok(result.getContent());
+        } catch (Exception e) {
+            System.err.println("❌ Offers-service: Error getting offers for company " + companyId + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(List.of());
+        }
+    }
+    
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        Map<String, Object> health = new HashMap<>();
+        health.put("status", "UP");
+        health.put("service", "offers-service");
+        health.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.ok(health);
+    }
+    
+    @PostMapping("/debug-create")
+    public ResponseEntity<Map<String, Object>> debugCreate(@RequestBody CreateOffreStageRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        Map<String, Object> debug = new HashMap<>();
+        debug.put("userIdHeader", httpRequest.getHeader("X-User-Id"));
+        debug.put("authHeader", httpRequest.getHeader("Authorization"));
+        debug.put("requestEntrepriseId", request.getEntrepriseId());
+        debug.put("allHeaders", java.util.Collections.list(httpRequest.getHeaderNames()));
+        return ResponseEntity.ok(debug);
+    }
+    
+    @GetMapping("/test/create-offers")
+    public ResponseEntity<Map<String, Object>> createTestOffers() {
+        try {
+            com.mogou.model.OffreStage offer1 = new com.mogou.model.OffreStage();
+            offer1.setTitre("Stage Développement Java");
+            offer1.setDescription("Développement d'applications Java Spring Boot");
+            offer1.setDomaine(com.mogou.model.DomaineStage.INFORMATIQUE);
+            offer1.setDuree(6);
+            offer1.setLocalisation("Paris");
+            offer1.setEntrepriseId(2L);
+            offer1.setStatut(com.mogou.model.StatutOffre.PUBLIEE);
+            offer1.setDatePublication(java.time.LocalDate.now());
+            offer1.setDateExpiration(java.time.LocalDate.now().plusDays(30));
+            offer1.setSalaire(1000.0);
+            
+            com.mogou.model.OffreStage offer2 = new com.mogou.model.OffreStage();
+            offer2.setTitre("Stage Marketing Digital");
+            offer2.setDescription("Gestion des campagnes marketing");
+            offer2.setDomaine(com.mogou.model.DomaineStage.MARKETING);
+            offer2.setDuree(4);
+            offer2.setLocalisation("Lyon");
+            offer2.setEntrepriseId(2L);
+            offer2.setStatut(com.mogou.model.StatutOffre.PUBLIEE);
+            offer2.setDatePublication(java.time.LocalDate.now());
+            offer2.setDateExpiration(java.time.LocalDate.now().plusDays(30));
+            offer2.setSalaire(800.0);
+            
+            com.mogou.model.OffreStage saved1 = offreStageRepository.save(offer1);
+            com.mogou.model.OffreStage saved2 = offreStageRepository.save(offer2);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("message", "Test offers created for company 2");
+            result.put("count", 2);
+            result.put("offerIds", List.of(saved1.getId(), saved2.getId()));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            error.put("errorType", e.getClass().getSimpleName());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(error);
         }
     }
     

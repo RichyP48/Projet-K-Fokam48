@@ -258,7 +258,7 @@ export class CompanyOffersComponent implements OnInit {
       localisation: this.currentOffer.location,
       competencesRequises: this.currentOffer.requiredSkills,
       dateExpiration: this.currentOffer.expirationDate,
-      entrepriseId: 1 // ID de l'entreprise connectée (à récupérer dynamiquement)
+      entrepriseId: 13 // ID de l'entreprise univerSearch
     };
 
     console.log('📤 submission detected:', this.currentOffer);

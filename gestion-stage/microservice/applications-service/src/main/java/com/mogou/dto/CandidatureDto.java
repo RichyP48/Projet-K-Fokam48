@@ -23,4 +23,13 @@ public class CandidatureDto {
     private String companyName;
     private String location;
     private String duration;
+    
+    // Champs pour compatibilité frontend (mapping anglais)
+    private Long studentId;
+    private Long offerId;
+    private String status;
+    private LocalDateTime applicationDate;
+    private String coverLetter;
+    private String studentName;
+    private String cvPath;
 }
