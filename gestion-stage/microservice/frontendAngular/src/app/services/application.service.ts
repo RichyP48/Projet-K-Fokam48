@@ -14,8 +14,8 @@ export class ApplicationService {
    * Submit a new application for an internship offer
    * @param formData Form data containing all application information
    */
-  submitApplication(formData: FormData): Observable<Application> {
-    return this.apiService.post<Application>('/applications', formData);
+  submitApplication(offerId: number, coverLetter: string, cvFile: File): Observable<Application> {
+    return this.apiService.submitApplication(offerId, coverLetter, cvFile);
   }
 
   /**
@@ -24,12 +24,7 @@ export class ApplicationService {
    * @param size Page size
    */
   getStudentApplications(page = 0, size = 10): Observable<any> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString())
-      .set('sort', 'applicationDate,desc');
-    
-    return this.apiService.get<any>('/students/me/applications', params);
+    return this.apiService.getStudentApplications(page, size);
   }
 
   /**
@@ -39,16 +34,7 @@ export class ApplicationService {
    * @param offerId Optional filter by offer ID
    */
   getCompanyApplications(page = 0, size = 10, offerId?: number): Observable<any> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString())
-      .set('sort', 'applicationDate,desc');
-    
-    if (offerId) {
-      params = params.set('offerId', offerId.toString());
-    }
-    
-    return this.apiService.get<any>('/companies/me/applications', params);
+    return this.apiService.getCompanyApplications(page, size, offerId);
   }
 
   /**
@@ -56,7 +42,7 @@ export class ApplicationService {
    * @param applicationId Application ID
    */
   getApplicationById(applicationId: number): Observable<Application> {
-    return this.apiService.get<Application>(`/applications/${applicationId}`);
+    return this.apiService.getApplicationById(applicationId);
   }
 
   /**
@@ -65,7 +51,7 @@ export class ApplicationService {
    * @param statusData Status update data
    */
   updateApplicationStatus(applicationId: number, statusData: ApplicationStatusUpdateRequest): Observable<Application> {
-    return this.apiService.put<Application>(`/applications/${applicationId}/status`, statusData);
+    return this.apiService.updateApplicationStatus(applicationId, statusData);
   }
 
   /**
@@ -88,7 +74,6 @@ export class ApplicationService {
    * @param applicationId Application ID
    */
   downloadCV(applicationId: number): Observable<Blob> {
-    return this.apiService.get<Blob>(`/applications/${applicationId}/cv`,
-       new HttpParams(), 'blob');
+    return this.apiService.getBlob(`/candidatures/${applicationId}/cv`);
   }
 }

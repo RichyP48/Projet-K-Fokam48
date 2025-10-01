@@ -1,6 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { ApiService } from '../../../../services/api.service';
+import { ApplicationService } from '../../../../services/application.service';
+import { OfferService } from '../../../../services/offer.service';
+import { AgreementService } from '../../../../services/agreement.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-company-dashboard',
@@ -23,7 +29,7 @@ import { RouterLink } from '@angular/router';
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-primary-600">Offres actives</p>
-              <p class="text-2xl font-bold text-primary-900">8</p>
+              <p class="text-2xl font-bold text-primary-900">{{stats.offers}}</p>
             </div>
           </div>
         </div>
@@ -39,7 +45,7 @@ import { RouterLink } from '@angular/router';
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-primary-600">Candidatures</p>
-              <p class="text-2xl font-bold text-primary-900">32</p>
+              <p class="text-2xl font-bold text-primary-900">{{stats.applications}}</p>
             </div>
           </div>
         </div>
@@ -53,7 +59,7 @@ import { RouterLink } from '@angular/router';
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-primary-600">Stagiaires</p>
-              <p class="text-2xl font-bold text-primary-900">5</p>
+              <p class="text-2xl font-bold text-primary-900">{{stats.interns}}</p>
             </div>
           </div>
         </div>
@@ -67,7 +73,7 @@ import { RouterLink } from '@angular/router';
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-primary-600">Conventions</p>
-              <p class="text-2xl font-bold text-primary-900">3</p>
+              <p class="text-2xl font-bold text-primary-900">{{stats.agreements}}</p>
             </div>
           </div>
         </div>
@@ -101,4 +107,46 @@ import { RouterLink } from '@angular/router';
   `,
   styles: ``
 })
-export class CompanyDashboardComponent {}
+export class CompanyDashboardComponent implements OnInit {
+  stats = {
+    offers: 0,
+    applications: 0,
+    agreements: 0,
+    interns: 0
+  };
+
+  constructor(
+    private apiService: ApiService,
+    private applicationService: ApplicationService,
+    private offerService: OfferService,
+    private agreementService: AgreementService
+  ) {}
+
+  ngOnInit() {
+    this.loadStats();
+  }
+
+  private loadStats() {
+    forkJoin({
+      offers: this.offerService.getCompanyOffers(0, 100).pipe(
+        catchError(() => of({ content: [], totalElements: 0 }))
+      ),
+      applications: this.applicationService.getCompanyApplications(0, 100).pipe(
+        catchError(() => of({ content: [], totalElements: 0 }))
+      ),
+      agreements: this.agreementService.getCompanyAgreements(0, 100).pipe(
+        catchError(() => of({ content: [], totalElements: 0 }))
+      )
+    }).subscribe({
+      next: (results) => {
+        this.stats.offers = results.offers.totalElements || results.offers.content?.length || 0;
+        this.stats.applications = results.applications.totalElements || results.applications.content?.length || 0;
+        this.stats.agreements = results.agreements.totalElements || results.agreements.content?.length || 0;
+        this.stats.interns = results.agreements.content?.filter((a: any) => a.status === 'SIGNED').length || 0;
+      },
+      error: (error) => {
+        console.error('Error loading dashboard stats:', error);
+      }
+    });
+  }
+}
