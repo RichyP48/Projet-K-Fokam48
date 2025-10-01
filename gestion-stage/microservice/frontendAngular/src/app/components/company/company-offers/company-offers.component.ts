@@ -241,20 +241,29 @@ export class CompanyOffersComponent implements OnInit {
   }
 
   saveOffer() {
-    // Mapper les données frontend vers le format backend français
+    // Mapper les données frontend vers le format backend
     const offerData = {
-      titre: this.currentOffer.title,
+      title: this.currentOffer.title,
       description: this.currentOffer.description,
-      entrepriseId: 1, // TODO: Récupérer l'ID de l'entreprise connectée
-      domaine: this.currentOffer.domain.toUpperCase(), // Convertir en majuscules pour l'enum
-      duree: parseInt(this.currentOffer.duration),
-      localisation: this.currentOffer.location,
-      competencesRequises: this.currentOffer.requiredSkills,
-      dateExpiration: new Date(this.currentOffer.startDate).toISOString().split('T')[0]
+      domain: this.currentOffer.domain,
+      duration: parseInt(this.currentOffer.duration) || 0,
+      location: this.currentOffer.location,
+      requirements: this.currentOffer.requiredSkills,
+      startDate: this.currentOffer.startDate,
+      salary: this.currentOffer.salaire || 0,
+      isRemote: false,
+      applicationDeadline: this.currentOffer.startDate,
+      maxApplications: 50,
+      status: 'ACTIVE'
     };
 
-    console.log('Données envoyées au backend:', offerData);
+    console.log('📤 submission detected:', this.currentOffer);
+    console.log('📤 Données envoyées au backend:', offerData);
+    console.log('📤 JSON stringify:', JSON.stringify(offerData, null, 2));
 
+    // Test direct sur le service offers (port 8081) au lieu de la Gateway (8090)
+    console.log('📤 Testing direct service call...');
+    
     this.offerService.createOffer(offerData as any).subscribe({
       next: (response) => {
         console.log('✅ Offre créée avec succès:', response);
@@ -264,16 +273,18 @@ export class CompanyOffersComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('❌ Erreur lors de la création:', error);
-        // Vérifier si c'est vraiment une erreur ou juste un problème de parsing
-        if (error.status === 0 || error.status === 200 || error.status === 201) {
-          // La requête a probablement réussi mais il y a un problème de parsing
-          console.log('🔄 Requête probablement réussie, rechargement des offres...');
-          this.loadOffers();
-          this.closeModal();
-          this.notificationService.showSuccess('Offre créée avec succès');
-        } else {
-          this.notificationService.showError('Erreur lors de la création de l\'offre');
+        console.error('❌ Error status:', error.status);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
+        
+        let errorMessage = 'Erreur lors de la création de l\'offre';
+        if (error.error && typeof error.error === 'string') {
+          errorMessage = error.error;
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
         }
+        
+        this.notificationService.showError(errorMessage);
       }
     });
     }

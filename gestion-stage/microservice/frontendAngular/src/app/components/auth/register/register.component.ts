@@ -237,11 +237,20 @@ import { Router } from '@angular/router';
                     formControlName="facultyId"
                     class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                     [ngClass]="{ 'border-red-500': registerForm.get('facultyId')?.invalid && registerForm.get('facultyId')?.touched }"
-                    [disabled]="!selectedSchoolId"
+                    [disabled]="!selectedSchoolId && registerForm.get('schoolId')?.value !== 'new'"
                     (change)="onFacultyChange($event)">
                     <option value="">Sélectionnez une faculté</option>
                     <option *ngFor="let faculty of faculties" [value]="faculty.id">{{faculty.name}}</option>
+                    <option value="new">+ Ajouter une nouvelle faculté</option>
                   </select>
+                  <div *ngIf="registerForm.get('facultyId')?.value === 'new'" class="mt-2">
+                    <input
+                      formControlName="newFacultyName"
+                      type="text"
+                      placeholder="Nom de la nouvelle faculté"
+                      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    />
+                  </div>
                 </div>
                 
                 <div>
@@ -250,10 +259,19 @@ import { Router } from '@angular/router';
                     formControlName="departmentId"
                     class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                     [ngClass]="{ 'border-red-500': registerForm.get('departmentId')?.invalid && registerForm.get('departmentId')?.touched }"
-                    [disabled]="!selectedFacultyId">
+                    [disabled]="!selectedFacultyId && registerForm.get('facultyId')?.value !== 'new'">
                     <option value="">Sélectionnez un département</option>
                     <option *ngFor="let department of departments" [value]="department.id">{{department.name}}</option>
+                    <option value="new">+ Ajouter un nouveau département</option>
                   </select>
+                  <div *ngIf="registerForm.get('departmentId')?.value === 'new'" class="mt-2">
+                    <input
+                      formControlName="newDepartmentName"
+                      type="text"
+                      placeholder="Nom du nouveau département"
+                      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -509,7 +527,9 @@ export class RegisterComponent implements OnInit {
         newSchoolName: [''],
         newSchoolAddress: [''],
         facultyId: ['', [Validators.required]],
+        newFacultyName: [''],
         departmentId: ['', [Validators.required]],
+        newDepartmentName: [''],
         specialty: [''],
         bio: [''],
         password: ['', [Validators.required, Validators.minLength(6)]]
@@ -578,10 +598,17 @@ export class RegisterComponent implements OnInit {
   }
 
   onFacultyChange(event: any): void {
-    const facultyId = parseInt(event.target.value);
-    this.selectedFacultyId = facultyId;
+    const facultyValue = event.target.value;
     this.departments = [];
     this.registerForm.get('departmentId')?.setValue('');
+    
+    if (facultyValue === 'new') {
+      this.selectedFacultyId = null;
+      return;
+    }
+    
+    const facultyId = parseInt(facultyValue);
+    this.selectedFacultyId = facultyId;
     
     if (facultyId) {
       this.academicService.getDepartmentDropdownsByFaculty(facultyId).subscribe({
@@ -591,7 +618,6 @@ export class RegisterComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error loading departments:', error);
-          // Fallback data
           this.departments = [
             { id: 1, name: 'Informatique' },
             { id: 2, name: 'Mathématiques' },
@@ -608,6 +634,7 @@ export class RegisterComponent implements OnInit {
       this.errorMessage = '';
       
       let formData = { ...this.registerForm.value };
+      console.log('🔍 Form data before processing:', formData);
       
       if (this.selectedRole === 'FACULTY') {
         // Use custom school name if 'autre' was selected
@@ -649,7 +676,18 @@ export class RegisterComponent implements OnInit {
         },
         error: (error: any) => {
           this.isLoading = false;
-          const errorMsg = error.error || 'Erreur lors de l\'inscription';
+          console.error('❌ Registration error:', error);
+          console.error('❌ Error details:', JSON.stringify(error, null, 2));
+          
+          let errorMsg = 'Erreur lors de l\'inscription';
+          if (typeof error.error === 'string') {
+            errorMsg = error.error;
+          } else if (error.error?.message) {
+            errorMsg = error.error.message;
+          } else if (error.message) {
+            errorMsg = error.message;
+          }
+          
           this.errorMessage = errorMsg;
           this.notificationService.showError(errorMsg);
         }

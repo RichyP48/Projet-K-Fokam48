@@ -59,14 +59,38 @@ public class AuthService {
         
         // Assignation des références académiques pour les étudiants et enseignants
         if (request.getRole() == Role.ETUDIANT || request.getRole() == Role.ENSEIGNANT) {
+            // Gérer la création d'école si nécessaire
             if (request.getProfile().getSchoolId() != null) {
                 profile.setSchool(schoolRepository.findById(request.getProfile().getSchoolId()).orElse(null));
+            } else if (request.getProfile().getNewSchoolName() != null && !request.getProfile().getNewSchoolName().isEmpty()) {
+                // Créer nouvelle école
+                var newSchool = new com.mogou.model.School();
+                newSchool.setName(request.getProfile().getNewSchoolName());
+                newSchool.setAddress(request.getProfile().getNewSchoolAddress());
+                profile.setSchool(schoolRepository.save(newSchool));
             }
+            
+            // Gérer la création de faculté si nécessaire
             if (request.getProfile().getFacultyId() != null) {
                 profile.setFaculty(facultyRepository.findById(request.getProfile().getFacultyId()).orElse(null));
+            } else if (request.getProfile().getNewFacultyName() != null && !request.getProfile().getNewFacultyName().isEmpty()) {
+                // Créer nouvelle faculté
+                var newFaculty = new com.mogou.model.Faculty();
+                newFaculty.setName(request.getProfile().getNewFacultyName());
+                newFaculty.setSchool(profile.getSchool());
+                profile.setFaculty(facultyRepository.save(newFaculty));
             }
+            
+            // Gérer la création de département si nécessaire
             if (request.getProfile().getDepartmentId() != null) {
                 profile.setDepartment(departmentRepository.findById(request.getProfile().getDepartmentId()).orElse(null));
+            } else if (request.getProfile().getNewDepartmentName() != null && !request.getProfile().getNewDepartmentName().isEmpty()) {
+                // Créer nouveau département
+                var newDepartment = new com.mogou.model.Department();
+                newDepartment.setName(request.getProfile().getNewDepartmentName());
+                newDepartment.setFaculty(profile.getFaculty());
+                newDepartment.setHeadTeacher(user); // L'enseignant devient responsable du département
+                profile.setDepartment(departmentRepository.save(newDepartment));
             }
         }
         

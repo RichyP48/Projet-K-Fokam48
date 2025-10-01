@@ -1,0 +1,15 @@
+{
+  "title": "Stage Développeur Full Stack",
+  "description": "Nous recherchons un stagiaire développeur full stack pour rejoindre notre équipe de développement. Le candidat travaillera sur des projets web modernes utilisant React, Node.js et MongoDB.",
+  "requirements": "- Étudiant en informatique (L3/M1/M2)\n- Connaissances en JavaScript\n- Bases en React et Node.js\n- Motivation et esprit d'équipe",
+  "location": "Yaoundé, Cameroun",
+  "duration": 6,
+  "startDate": "2025-02-01",
+  "endDate": "2025-07-31",
+  "salary": 150000,
+  "isRemote": false,
+  "applicationDeadline": "2025-01-15",
+  "maxApplications": 10,
+  "status": "ACTIVE",
+  "companyId": 10
+}

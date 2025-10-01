@@ -120,13 +120,16 @@ export class AuthService {
         nom: registrationData.lastName,
         prenom: registrationData.firstName,
         telephone: registrationData.phoneNumber,
-        schoolId: registrationData.schoolId,
-        facultyId: registrationData.facultyId,
-        departmentId: registrationData.departmentId,
-        specialty: registrationData.specialty,
-        bio: registrationData.bio
+        schoolId: registrationData.schoolId === 'new' ? null : parseInt(registrationData.schoolId),
+        facultyId: registrationData.facultyId === 'new' ? null : parseInt(registrationData.facultyId),
+        departmentId: registrationData.departmentId === 'new' ? null : parseInt(registrationData.departmentId),
+        newSchoolName: registrationData.newSchoolName,
+        newFacultyName: registrationData.newFacultyName,
+        newDepartmentName: registrationData.newDepartmentName
       }
     };
+    
+    console.log('📤 Sending teacher data:', teacherData);
     
     return this.apiService.post<AuthResponse>('/auth/register/teacher', teacherData).pipe(
       tap(response => this.handleAuthResponse(response)),
