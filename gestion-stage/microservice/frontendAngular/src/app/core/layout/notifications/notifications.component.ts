@@ -78,7 +78,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         this.notifications = response.content || response || [];
         this.unreadCount = this.notifications.filter(n => !n.read).length;
       },
-      error: () => {
+      error: (error) => {
+        console.warn('Notifications service unavailable:', error.status);
         this.notifications = [];
         this.unreadCount = 0;
       }
