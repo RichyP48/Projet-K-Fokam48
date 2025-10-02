@@ -48,13 +48,21 @@ public class FileStorageService {
         }
         
         try {
+            // Validate file
+            if (file == null || file.isEmpty()) {
+                throw new RuntimeException("File is empty or null");
+            }
+            
             String originalFilename = file.getOriginalFilename();
             String fileExtension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
                 fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
+            
             // Création d'un chemin structuré pour mieux organiser les fichiers
             String uniqueFileName = "etudiant-" + etudiantId + "/" + UUID.randomUUID() + fileExtension;
+            
+            logger.info("Uploading file to MinIO: {} (size: {} bytes)", uniqueFileName, file.getSize());
 
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -63,10 +71,12 @@ public class FileStorageService {
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .contentType(file.getContentType())
                             .build());
-
+            
+            logger.info("File uploaded successfully: {}", uniqueFileName);
             return uniqueFileName;
         } catch (Exception e) {
-            throw new RuntimeException("Error occurred while uploading file.", e);
+            logger.error("Error uploading file for student {}: {}", etudiantId, e.getMessage(), e);
+            throw new RuntimeException("Error occurred while uploading file: " + e.getMessage(), e);
         }
     }
 

@@ -79,15 +79,15 @@ public class CandidatureServiceImpl implements CandidatureService {
             dto.setDuration(offer.getDuree() != null ? String.valueOf(offer.getDuree()) : null);
         } catch (Exception e) {
             System.err.println("Erreur lors de la récupération de l'offre " + candidature.getOffreId() + ": " + e.getMessage());
+            // Valeurs par défaut si l'offre n'existe plus
+            dto.setOfferTitle("Offre supprimée (ID: " + candidature.getOffreId() + ")");
+            dto.setCompanyName("Entreprise inconnue");
+            dto.setLocation("Non spécifié");
+            dto.setDuration("Non spécifié");
         }
         
         // Ajouter le nom de l'étudiant
-        try {
-            // TODO: Appeler user-service pour récupérer le nom de l'étudiant
-            dto.setStudentName("Étudiant " + candidature.getEtudiantId());
-        } catch (Exception e) {
-            dto.setStudentName("Étudiant " + candidature.getEtudiantId());
-        }
+        dto.setStudentName("Étudiant " + candidature.getEtudiantId());
         
         return dto;
     }
@@ -206,6 +206,10 @@ public class CandidatureServiceImpl implements CandidatureService {
 
     public com.mogou.client.OffersClient getOffersClient() {
         return offersClient;
+    }
+    
+    public FileStorageService getFileStorageService() {
+        return fileStorageService;
     }
 
     @Override

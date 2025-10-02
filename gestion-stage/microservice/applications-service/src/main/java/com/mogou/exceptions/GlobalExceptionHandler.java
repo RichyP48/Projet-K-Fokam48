@@ -30,6 +30,11 @@ public class GlobalExceptionHandler {
     // Un gestionnaire pour les autres exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
-        return new ResponseEntity<>(Map.of("message", "Une erreur interne est survenue."), HttpStatus.INTERNAL_SERVER_ERROR);
+        ex.printStackTrace(); // Log the full stack trace
+        return new ResponseEntity<>(Map.of(
+            "message", "Une erreur interne est survenue.",
+            "error", ex.getMessage(),
+            "type", ex.getClass().getSimpleName()
+        ), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

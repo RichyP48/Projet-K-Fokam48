@@ -41,6 +41,7 @@ import { ApplicationStatus } from '../../../../models/application.model';
               <h3 class="text-lg font-semibold text-gray-900">{{application.studentName}}</h3>
               <p class="text-gray-600 mb-2">{{application.offerTitle}}</p>
               <p class="text-sm text-gray-500 mb-4">{{application.coverLetter}}</p>
+              <p class="text-xs text-blue-500 mb-2">ID: {{application.id}} | Offre: {{application.offreId}}</p>
               <div class="flex items-center space-x-4 text-sm text-gray-500">
                 <span>Candidature du {{formatDate(application.applicationDate)}}</span>
                 <span [ngClass]="getStatusClass(application.status)" class="px-2 py-1 rounded-full text-xs font-medium">
@@ -92,13 +93,18 @@ export class CompanyApplicationsComponent implements OnInit {
 
   loadApplications(): void {
     this.loading = true;
+    
+    const userId = localStorage.getItem('user_id');
+    console.log('🏢 Company', userId, 'loading applications...');
+    
     this.applicationService.getCompanyApplications(0, 50, this.offerId || undefined).subscribe({
       next: (response: any) => {
         this.applications = response.content || response || [];
+        console.log('📝 Company', userId, 'loaded', this.applications.length, 'applications');
         this.loading = false;
       },
       error: (error: any) => {
-        console.error('Error loading applications:', error);
+        console.error('❌ Error loading applications:', error);
         this.notificationService.showError('Erreur lors du chargement des candidatures');
         this.loading = false;
       }

@@ -330,8 +330,20 @@ export class OfferApplyComponent implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.error = err.message || 'Failed to submit application. Please try again.';
         console.error('Error submitting application:', err);
+        
+        // Extract error message from response
+        let errorMessage = 'Erreur lors de l\'envoi de la candidature. Veuillez réessayer.';
+        
+        if (err.error && err.error.error) {
+          errorMessage = err.error.error;
+        } else if (err.error && typeof err.error === 'string') {
+          errorMessage = err.error;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        this.error = errorMessage;
       }
     });
   }

@@ -26,7 +26,17 @@ export class InternshipService {
 
   // Offres
   getAllOffers(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/offers`);
+    const params = new HttpParams()
+      .set('page', '0')
+      .set('size', '50');
+    return this.http.get(`${this.baseUrl}/offers`, { params });
+  }
+  
+  getAllOffersPaginated(page: number = 0, size: number = 6): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    return this.http.get(`${this.baseUrl}/offers`, { params });
   }
 
   getOfferById(id: number): Observable<any> {

@@ -93,6 +93,29 @@ import { HttpClient } from '@angular/common/http';
       <div *ngIf="filteredOffers.length === 0" class="text-center py-12">
         <p class="text-gray-500">Aucune offre trouvée</p>
       </div>
+      
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="flex justify-center items-center space-x-4 mt-8">
+        <button (click)="previousPage()" [disabled]="currentPage === 0" 
+                class="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Précédent
+        </button>
+        
+        <span class="text-sm text-gray-700">
+          Page {{currentPage + 1}} sur {{totalPages}} ({{totalElements}} offres)
+        </span>
+        
+        <button (click)="nextPage()" [disabled]="currentPage >= totalPages - 1"
+                class="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+          Suivant
+          <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Modal détails offre -->
@@ -214,6 +237,12 @@ export class OffersListComponent implements OnInit {
   selectedLocation = '';
   selectedDuration = '';
   locations: string[] = [];
+  
+  // Pagination
+  currentPage = 0;
+  pageSize = 6;
+  totalPages = 0;
+  totalElements = 0;
 
   constructor(
     private internshipService: InternshipService,
@@ -253,13 +282,19 @@ export class OffersListComponent implements OnInit {
   }
 
   loadOffers() {
-    this.internshipService.getAllOffers().subscribe({
+    console.log('📝 Loading offers for students...');
+    this.internshipService.getAllOffersPaginated(this.currentPage, this.pageSize).subscribe({
       next: (data) => {
-        this.offers = data.content || data || [];
+        console.log('🎯 Offers received:', data);
+        this.offers = data.content || [];
         this.filteredOffers = [...this.offers];
+        this.totalElements = data.totalElements || 0;
+        this.totalPages = data.totalPages || 0;
         this.locations = [...new Set(this.offers.map((o: any) => o.localisation).filter(Boolean))];
+        console.log('📊 Page', this.currentPage + 1, 'of', this.totalPages, '- Total:', this.totalElements);
       },
       error: (error) => {
+        console.error('❌ Error loading offers:', error);
         this.notificationService.showError('Erreur lors du chargement des offres');
       }
     });
@@ -334,5 +369,25 @@ export class OffersListComponent implements OnInit {
       'EXPIRED': 'bg-red-100 text-red-800'
     };
     return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-800';
+  }
+  
+  // Pagination methods
+  nextPage() {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadOffers();
+    }
+  }
+  
+  previousPage() {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadOffers();
+    }
+  }
+  
+  goToPage(page: number) {
+    this.currentPage = page;
+    this.loadOffers();
   }
 }
