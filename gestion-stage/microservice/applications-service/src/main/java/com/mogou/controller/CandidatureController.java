@@ -491,5 +491,26 @@ public class CandidatureController {
         }
         return ResponseEntity.ok(result);
     }
+    
+    @GetMapping("/{id}/cv")
+    public ResponseEntity<byte[]> downloadCV(@PathVariable Long id) {
+        try {
+            Candidature candidature = candidatureService.findById(id);
+            if (candidature.getCvPath() == null || candidature.getCvPath().isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            com.mogou.service.FileStorageService fileService = ((CandidatureServiceImpl) candidatureService).getFileStorageService();
+            byte[] cvData = fileService.downloadFile(candidature.getCvPath());
+            
+            return ResponseEntity.ok()
+                .header("Content-Type", "application/pdf")
+                .header("Content-Disposition", "attachment; filename=\"CV_" + candidature.getEtudiantId() + ".pdf\"")
+                .body(cvData);
+        } catch (Exception e) {
+            logger.error("Error downloading CV for application {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
 

@@ -76,4 +76,21 @@ export class ApplicationService {
   downloadCV(applicationId: number): Observable<Blob> {
     return this.apiService.getBlob(`/candidatures/${applicationId}/cv`);
   }
+
+  /**
+   * Accept an application (company only)
+   * @param applicationId Application ID
+   */
+  acceptApplication(applicationId: number): Observable<any> {
+    return this.apiService.put(`/candidatures/${applicationId}/accept`, {});
+  }
+
+  /**
+   * Reject an application (company only)
+   * @param applicationId Application ID
+   * @param reason Rejection reason
+   */
+  rejectApplication(applicationId: number, reason: string): Observable<any> {
+    return this.apiService.put(`/candidatures/${applicationId}/reject`, { reason });
+  }
 }

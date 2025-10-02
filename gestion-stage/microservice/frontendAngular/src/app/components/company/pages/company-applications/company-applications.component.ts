@@ -113,15 +113,21 @@ export class CompanyApplicationsComponent implements OnInit {
   }
 
   updateStatus(application: any, status: ApplicationStatus): void {
-    this.applicationService.updateApplicationStatus(application.id, { status }).subscribe({
+    const endpoint = status === ApplicationStatus.ACCEPTED ? 'accept' : 'reject';
+    const apiCall = status === ApplicationStatus.ACCEPTED 
+      ? this.applicationService.acceptApplication(application.id)
+      : this.applicationService.rejectApplication(application.id, 'Application rejected by company');
+    
+    apiCall.subscribe({
       next: () => {
-        application.status = status;
+        application.status = status === ApplicationStatus.ACCEPTED ? 'ACCEPTED' : 'REJECTED';
         
         if (status === ApplicationStatus.ACCEPTED) {
           this.createAgreement(application);
         }
         
         this.notificationService.showSuccess(`Candidature ${status === ApplicationStatus.ACCEPTED ? 'acceptée' : 'refusée'}`);
+        this.loadApplications(); // Reload to get updated data
       },
       error: (error: any) => {
         console.error('Error updating status:', error);
