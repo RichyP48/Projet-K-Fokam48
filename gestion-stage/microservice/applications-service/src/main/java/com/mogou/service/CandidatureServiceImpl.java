@@ -89,6 +89,13 @@ public class CandidatureServiceImpl implements CandidatureService {
         // Ajouter le nom de l'étudiant
         dto.setStudentName("Étudiant " + candidature.getEtudiantId());
         
+        // S'assurer que les champs de compatibilité sont bien remplis
+        dto.setStudentId(candidature.getEtudiantId());
+        dto.setOfferId(candidature.getOffreId());
+        dto.setApplicationDate(candidature.getDatePostulation());
+        dto.setCoverLetter(candidature.getCommentaires());
+        dto.setCvPath(candidature.getCvPath());
+        
         return dto;
     }
 

@@ -69,11 +69,6 @@ spring:
               uri: lb://applications-service
               predicates:
                 - Path=/api/candidatures/**
-              filters:
-                - name: CircuitBreaker
-                  args:
-                    name: applicationsServiceCB
-                    fallbackUri: forward:/fallback/applications-service
 
             - id: conventions-service
               uri: lb://conventions-service

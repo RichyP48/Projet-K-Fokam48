@@ -53,12 +53,12 @@ import { ApplicationStatus } from '../../../../models/application.model';
               <button *ngIf="application.cvPath" (click)="downloadCV(application)" class="px-3 py-1.5 text-xs font-medium text-primary-600 border border-primary-600 rounded-md hover:bg-primary-50">
                 Télécharger CV
               </button>
-              <button *ngIf="application.status === 'PENDING'"
+              <button *ngIf="application.status === 'PENDING' || application.status === 'POSTULE' || application.status === 'EN_ATTENTE'"
                       (click)="updateStatus(application, ApplicationStatus.ACCEPTED)" 
                       class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
                 Accepter
               </button>
-              <button *ngIf="application.status === 'PENDING'"
+              <button *ngIf="application.status === 'PENDING' || application.status === 'POSTULE' || application.status === 'EN_ATTENTE'"
                       (click)="updateStatus(application, ApplicationStatus.REJECTED)" 
                       class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
                 Refuser
@@ -101,6 +101,7 @@ export class CompanyApplicationsComponent implements OnInit {
       next: (response: any) => {
         this.applications = response.content || response || [];
         console.log('📝 Company', userId, 'loaded', this.applications.length, 'applications');
+        console.log('🔍 Applications data:', this.applications);
         this.loading = false;
       },
       error: (error: any) => {
@@ -169,8 +170,13 @@ export class CompanyApplicationsComponent implements OnInit {
   getStatusClass(status: string): string {
     const classes = {
       'PENDING': 'bg-yellow-100 text-yellow-800',
+      'POSTULE': 'bg-blue-100 text-blue-800',
+      'EN_ATTENTE': 'bg-yellow-100 text-yellow-800',
       'ACCEPTED': 'bg-green-100 text-green-800',
-      'REJECTED': 'bg-red-100 text-red-800'
+      'ACCEPTE': 'bg-green-100 text-green-800',
+      'REJECTED': 'bg-red-100 text-red-800',
+      'REFUSE': 'bg-red-100 text-red-800',
+      'RETIRE': 'bg-gray-100 text-gray-800'
     };
     return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-800';
   }
@@ -178,8 +184,13 @@ export class CompanyApplicationsComponent implements OnInit {
   getStatusLabel(status: string): string {
     const labels = {
       'PENDING': 'En attente',
+      'POSTULE': 'Postulé',
+      'EN_ATTENTE': 'En attente',
       'ACCEPTED': 'Acceptée',
-      'REJECTED': 'Refusée'
+      'ACCEPTE': 'Acceptée',
+      'REJECTED': 'Refusée',
+      'REFUSE': 'Refusée',
+      'RETIRE': 'Retiré'
     };
     return labels[status as keyof typeof labels] || status;
   }
