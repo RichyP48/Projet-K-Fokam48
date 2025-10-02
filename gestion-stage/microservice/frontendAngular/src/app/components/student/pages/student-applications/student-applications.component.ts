@@ -53,8 +53,8 @@ import { NotificationService } from '../../../../services/notification.service';
                 </td>
                 <td class="px-4 py-3">
                   <div>
-                    <span [ngClass]="getStatusClass(application.statut)" class="px-2 py-1 rounded-full text-sm">
-                      {{getStatusLabel(application.statut)}}
+                    <span [ngClass]="getStatusClass(application.status || application.statut)" class="px-2 py-1 rounded-full text-sm">
+                      {{getStatusLabel(application.status || application.statut)}}
                     </span>
                     <div class="mt-1 flex space-x-2">
                       <span *ngIf="application.hasCv" class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
@@ -119,8 +119,8 @@ import { NotificationService } from '../../../../services/notification.service';
           <div class="mb-4">
             <div class="flex items-center justify-between mb-3">
               <span class="font-medium text-gray-700">Statut:</span>
-              <span [ngClass]="getStatusClass(selectedApplication.statut)" class="px-3 py-1 rounded-full text-sm">
-                {{getStatusLabel(selectedApplication.statut)}}
+              <span [ngClass]="getStatusClass(selectedApplication.status || selectedApplication.statut)" class="px-3 py-1 rounded-full text-sm">
+                {{getStatusLabel(selectedApplication.status || selectedApplication.statut)}}
               </span>
             </div>
             
@@ -149,7 +149,7 @@ import { NotificationService } from '../../../../services/notification.service';
             <button (click)="closeModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
               Fermer
             </button>
-            <button *ngIf="canAbandon(selectedApplication.statut)" 
+            <button *ngIf="canAbandon(selectedApplication.status || selectedApplication.statut)" 
                     (click)="abandonApplication(selectedApplication)" 
                     class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
               Abandonner la candidature
@@ -188,22 +188,34 @@ export class StudentApplicationsComponent implements OnInit {
 
   getStatusClass(status: string): string {
     const classes = {
+      // French statuses
       'POSTULE': 'bg-blue-100 text-blue-800',
-      'EN_COURS_EXAMEN': 'bg-yellow-100 text-yellow-800',
-      'ACCEPTEE': 'bg-green-100 text-green-800',
-      'REFUSEE': 'bg-red-100 text-red-800',
-      'RETIREE': 'bg-gray-100 text-gray-800'
+      'EN_ATTENTE': 'bg-yellow-100 text-yellow-800',
+      'ACCEPTE': 'bg-green-100 text-green-800',
+      'REFUSE': 'bg-red-100 text-red-800',
+      'RETIRE': 'bg-gray-100 text-gray-800',
+      // English statuses
+      'PENDING': 'bg-blue-100 text-blue-800',
+      'ACCEPTED': 'bg-green-100 text-green-800',
+      'REJECTED': 'bg-red-100 text-red-800',
+      'WITHDRAWN': 'bg-gray-100 text-gray-800'
     };
     return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-800';
   }
 
   getStatusLabel(status: string): string {
     const labels = {
+      // French statuses
       'POSTULE': 'Postulée',
-      'EN_COURS_EXAMEN': 'En cours d\'examen',
-      'ACCEPTEE': 'Acceptée',
-      'REFUSEE': 'Refusée',
-      'RETIREE': 'Retirée'
+      'EN_ATTENTE': 'En attente',
+      'ACCEPTE': 'Acceptée',
+      'REFUSE': 'Refusée',
+      'RETIRE': 'Retirée',
+      // English statuses
+      'PENDING': 'En attente',
+      'ACCEPTED': 'Acceptée',
+      'REJECTED': 'Refusée',
+      'WITHDRAWN': 'Retirée'
     };
     return labels[status as keyof typeof labels] || status;
   }
@@ -217,7 +229,7 @@ export class StudentApplicationsComponent implements OnInit {
   }
 
   canAbandon(status: string): boolean {
-    return status === 'POSTULE' || status === 'EN_COURS_EXAMEN';
+    return status === 'POSTULE' || status === 'EN_ATTENTE' || status === 'PENDING';
   }
 
   abandonApplication(application: any) {

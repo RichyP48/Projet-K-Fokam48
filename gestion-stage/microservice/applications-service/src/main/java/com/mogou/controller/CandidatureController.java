@@ -185,9 +185,12 @@ public class CandidatureController {
             logger.info("Company {} accepting application {}", entrepriseId, id);
             
             Candidature candidature = candidatureService.acceptApplication(id, entrepriseId);
-            logger.info("Application {} accepted, convention generation triggered", id);
+            logger.info("Application {} accepted with status: {}", id, candidature.getStatut());
             
-            return ResponseEntity.ok(CandidatureMapper.toDto(candidature));
+            CandidatureDto dto = CandidatureMapper.toDto(candidature);
+            logger.info("Returning DTO with status: {} (English: {})", candidature.getStatut(), dto.getStatus());
+            
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             logger.error("Error accepting application {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -202,8 +205,12 @@ public class CandidatureController {
             logger.info("Company {} rejecting application {} with reason: {}", entrepriseId, id, reason);
             
             Candidature candidature = candidatureService.rejectApplication(id, entrepriseId, reason);
+            logger.info("Application {} rejected with status: {}", id, candidature.getStatut());
             
-            return ResponseEntity.ok(CandidatureMapper.toDto(candidature));
+            CandidatureDto dto = CandidatureMapper.toDto(candidature);
+            logger.info("Returning DTO with status: {} (English: {})", candidature.getStatut(), dto.getStatus());
+            
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             logger.error("Error rejecting application {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -425,6 +432,29 @@ public class CandidatureController {
     public ResponseEntity<Long> countApplicationsByOfferId(@PathVariable Long offreId) {
         Long count = candidatureService.countByOffreId(offreId);
         return ResponseEntity.ok(count);
+    }
+    
+    @GetMapping("/test-status-mapping")
+    public ResponseEntity<Map<String, Object>> testStatusMapping() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Long entrepriseId = userService.getCurrentUserId();
+            result.put("entrepriseId", entrepriseId);
+            
+            List<CandidatureDto> candidatures = ((CandidatureServiceImpl) candidatureService).findEnrichedByEntrepriseId(entrepriseId);
+            result.put("totalCandidatures", candidatures.size());
+            
+            Map<String, Long> statusCounts = new HashMap<>();
+            for (CandidatureDto candidature : candidatures) {
+                String status = candidature.getStatus();
+                statusCounts.put(status, statusCounts.getOrDefault(status, 0L) + 1);
+            }
+            result.put("statusCounts", statusCounts);
+            
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+        }
+        return ResponseEntity.ok(result);
     }
     
     @GetMapping("/debug/all-applications")

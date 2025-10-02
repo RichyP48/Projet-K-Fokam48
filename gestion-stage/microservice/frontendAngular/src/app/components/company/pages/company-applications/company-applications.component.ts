@@ -23,6 +23,24 @@ import { ApplicationStatus } from '../../../../models/application.model';
       
       <h1 class="text-3xl font-bold text-gray-900 mb-6">Candidatures reçues..</h1>
       
+      <!-- Status Filter -->
+      <div class="mb-4">
+        <div class="flex space-x-2">
+          <button (click)="filterByStatus('ALL')" [class]="selectedFilter === 'ALL' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+            Toutes ({{applications.length}})
+          </button>
+          <button (click)="filterByStatus('PENDING')" [class]="selectedFilter === 'PENDING' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+            En attente ({{getCountByStatus(['PENDING', 'POSTULE', 'EN_ATTENTE'])}})
+          </button>
+          <button (click)="filterByStatus('ACCEPTED')" [class]="selectedFilter === 'ACCEPTED' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+            Acceptées ({{getCountByStatus(['ACCEPTED', 'ACCEPTE'])}})
+          </button>
+          <button (click)="filterByStatus('REJECTED')" [class]="selectedFilter === 'REJECTED' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+            Refusées ({{getCountByStatus(['REJECTED', 'REFUSE'])}})
+          </button>
+        </div>
+      </div>
+      
       <!-- Loading -->
       <div *ngIf="loading" class="flex justify-center py-8">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -30,12 +48,12 @@ import { ApplicationStatus } from '../../../../models/application.model';
       
       <!-- Applications List -->
       <div *ngIf="!loading" class="space-y-4">
-        <div *ngIf="applications.length === 0" class="bg-white rounded-lg shadow p-8 text-center">
+        <div *ngIf="filteredApplications.length === 0" class="bg-white rounded-lg shadow p-8 text-center">
           <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune candidature</h3>
           <p class="text-gray-500">Aucune candidature n'a été reçue pour vos offres.</p>
         </div>
         
-        <div *ngFor="let application of applications" class="bg-white rounded-lg shadow-md p-6">
+        <div *ngFor="let application of filteredApplications" class="bg-white rounded-lg shadow-md p-6">
           <div class="flex justify-between items-start">
             <div class="flex-1">
               <h3 class="text-lg font-semibold text-gray-900">{{application.studentName}}</h3>
@@ -73,6 +91,8 @@ import { ApplicationStatus } from '../../../../models/application.model';
 })
 export class CompanyApplicationsComponent implements OnInit {
   applications: any[] = [];
+  filteredApplications: any[] = [];
+  selectedFilter = 'ALL';
   loading = false;
   offerId: number | null = null;
   ApplicationStatus = ApplicationStatus;
@@ -102,6 +122,13 @@ export class CompanyApplicationsComponent implements OnInit {
         this.applications = response.content || response || [];
         console.log('📝 Company', userId, 'loaded', this.applications.length, 'applications');
         console.log('🔍 Applications data:', this.applications);
+        
+        // Debug: Log status of each application
+        this.applications.forEach((app, index) => {
+          console.log(`App ${index}: ID=${app.id}, Status=${app.status}, OfferTitle=${app.offerTitle}`);
+        });
+        
+        this.applyFilter();
         this.loading = false;
       },
       error: (error: any) => {
@@ -119,15 +146,20 @@ export class CompanyApplicationsComponent implements OnInit {
       : this.applicationService.rejectApplication(application.id, 'Application rejected by company');
     
     apiCall.subscribe({
-      next: () => {
-        application.status = status === ApplicationStatus.ACCEPTED ? 'ACCEPTED' : 'REJECTED';
+      next: (updatedApplication: any) => {
+        console.log('🔄 Backend response:', updatedApplication);
+        // Use the English status from the DTO
+        application.status = updatedApplication.status;
+        console.log('🔄 Updated application status to:', application.status);
         
         if (status === ApplicationStatus.ACCEPTED) {
           this.createAgreement(application);
         }
         
         this.notificationService.showSuccess(`Candidature ${status === ApplicationStatus.ACCEPTED ? 'acceptée' : 'refusée'}`);
-        this.loadApplications(); // Reload to get updated data
+        
+        // Refresh the filter to show updated status immediately
+        this.applyFilter();
       },
       error: (error: any) => {
         console.error('Error updating status:', error);
@@ -208,5 +240,42 @@ export class CompanyApplicationsComponent implements OnInit {
       month: 'short', 
       day: 'numeric' 
     }).format(date);
+  }
+
+  filterByStatus(status: string): void {
+    this.selectedFilter = status;
+    this.applyFilter();
+  }
+
+  applyFilter(): void {
+    console.log('🔍 Applying filter:', this.selectedFilter);
+    console.log('📊 Total applications:', this.applications.length);
+    
+    if (this.selectedFilter === 'ALL') {
+      this.filteredApplications = this.applications;
+    } else if (this.selectedFilter === 'PENDING') {
+      this.filteredApplications = this.applications.filter(app => 
+        ['PENDING', 'POSTULE', 'EN_ATTENTE'].includes(app.status)
+      );
+    } else if (this.selectedFilter === 'ACCEPTED') {
+      this.filteredApplications = this.applications.filter(app => 
+        ['ACCEPTED', 'ACCEPTE'].includes(app.status)
+      );
+      console.log('✅ Accepted applications found:', this.filteredApplications.length);
+      this.filteredApplications.forEach(app => {
+        console.log(`   - App ${app.id}: ${app.status} (${app.offerTitle})`);
+      });
+    } else if (this.selectedFilter === 'REJECTED') {
+      this.filteredApplications = this.applications.filter(app => 
+        ['REJECTED', 'REFUSE'].includes(app.status)
+      );
+      console.log('❌ Rejected applications found:', this.filteredApplications.length);
+    }
+    
+    console.log('📋 Filtered applications:', this.filteredApplications.length);
+  }
+
+  getCountByStatus(statuses: string[]): number {
+    return this.applications.filter(app => statuses.includes(app.status)).length;
   }
 }
