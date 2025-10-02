@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { OfferService } from '../../../services/offer.service';
-import { NotificationService } from '../../../services/notification.service';
-import { RefreshService } from '../../../services/refresh.service';
+import { OfferService } from '../../../../services/offer.service';
+import { NotificationService } from '../../../../services/notification.service';
+import { RefreshService } from '../../../../services/refresh.service';
+
 
 @Component({
   selector: 'app-company-offer-create',
@@ -13,7 +14,7 @@ import { RefreshService } from '../../../services/refresh.service';
   template: `
     <div class="container mx-auto px-4 py-8">
       <div class="mb-6">
-        <a routerLink="/company/offers" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+        <a routerLink="/company/offers" class="inline-flex items-center text-primary-600 hover:text-primary-800">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -32,7 +33,7 @@ import { RefreshService } from '../../../services/refresh.service';
               <input 
                 type="text" 
                 formControlName="title"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="Ex: Stage développeur web"
               >
               <div *ngIf="offerForm.get('title')?.invalid && offerForm.get('title')?.touched" class="text-red-500 text-sm mt-1">
@@ -46,7 +47,7 @@ import { RefreshService } from '../../../services/refresh.service';
               <textarea 
                 formControlName="description"
                 rows="4"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="Décrivez les missions et responsabilités du stagiaire..."
               ></textarea>
               <div *ngIf="offerForm.get('description')?.invalid && offerForm.get('description')?.touched" class="text-red-500 text-sm mt-1">
@@ -60,7 +61,7 @@ import { RefreshService } from '../../../services/refresh.service';
               <textarea 
                 formControlName="requiredSkills"
                 rows="3"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="Ex: JavaScript, React, Node.js, Base de données..."
               ></textarea>
               <div *ngIf="offerForm.get('requiredSkills')?.invalid && offerForm.get('requiredSkills')?.touched" class="text-red-500 text-sm mt-1">
@@ -73,7 +74,7 @@ import { RefreshService } from '../../../services/refresh.service';
               <label class="block text-sm font-medium text-gray-700 mb-2">Domaine *</label>
               <select 
                 formControlName="domain"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Sélectionner un domaine</option>
                 <option value="Informatique">Informatique</option>
@@ -95,7 +96,7 @@ import { RefreshService } from '../../../services/refresh.service';
               <input 
                 type="text" 
                 formControlName="location"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="Ex: Paris, Lyon, Télétravail..."
               >
               <div *ngIf="offerForm.get('location')?.invalid && offerForm.get('location')?.touched" class="text-red-500 text-sm mt-1">
@@ -108,7 +109,7 @@ import { RefreshService } from '../../../services/refresh.service';
               <label class="block text-sm font-medium text-gray-700 mb-2">Durée (en mois) *</label>
               <select 
                 formControlName="duration"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Sélectionner la durée</option>
                 <option value="1">1 mois</option>
@@ -129,7 +130,7 @@ import { RefreshService } from '../../../services/refresh.service';
               <input 
                 type="date" 
                 formControlName="startDate"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
               <div *ngIf="offerForm.get('startDate')?.invalid && offerForm.get('startDate')?.touched" class="text-red-500 text-sm mt-1">
                 La date de début est requise
@@ -149,7 +150,7 @@ import { RefreshService } from '../../../services/refresh.service';
             <button 
               type="submit" 
               [disabled]="offerForm.invalid || isSubmitting"
-              class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span *ngIf="isSubmitting">Création...</span>
               <span *ngIf="!isSubmitting">Créer l'offre</span>

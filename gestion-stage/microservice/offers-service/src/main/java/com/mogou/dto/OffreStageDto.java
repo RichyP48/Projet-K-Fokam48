@@ -21,4 +21,5 @@ public class OffreStageDto {
     private StatutOffre statut;
     private LocalDate datePublication;
     private LocalDate dateExpiration;
+    private Integer applicationCount; // Nombre de candidatures
 }

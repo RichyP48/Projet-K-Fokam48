@@ -21,7 +21,7 @@ import { ApplicationStatus } from '../../../../models/application.model';
         </a>
       </div>
       
-      <h1 class="text-3xl font-bold text-gray-900 mb-6">Candidatures reçues</h1>
+      <h1 class="text-3xl font-bold text-gray-900 mb-6">Candidatures reçues..</h1>
       
       <!-- Loading -->
       <div *ngIf="loading" class="flex justify-center py-8">
@@ -111,7 +111,6 @@ export class CompanyApplicationsComponent implements OnInit {
         application.status = status;
         
         if (status === ApplicationStatus.ACCEPTED) {
-          // Créer automatiquement une convention de stage
           this.createAgreement(application);
         }
         

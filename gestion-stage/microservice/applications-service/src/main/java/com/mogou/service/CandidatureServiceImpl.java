@@ -78,9 +78,17 @@ public class CandidatureServiceImpl implements CandidatureService {
             dto.setLocation(offer.getLocalisation());
             dto.setDuration(offer.getDuree() != null ? String.valueOf(offer.getDuree()) : null);
         } catch (Exception e) {
-            // En cas d'erreur, on garde les valeurs par défaut (null)
             System.err.println("Erreur lors de la récupération de l'offre " + candidature.getOffreId() + ": " + e.getMessage());
         }
+        
+        // Ajouter le nom de l'étudiant
+        try {
+            // TODO: Appeler user-service pour récupérer le nom de l'étudiant
+            dto.setStudentName("Étudiant " + candidature.getEtudiantId());
+        } catch (Exception e) {
+            dto.setStudentName("Étudiant " + candidature.getEtudiantId());
+        }
+        
         return dto;
     }
 
@@ -214,5 +222,11 @@ public class CandidatureServiceImpl implements CandidatureService {
             throw new IllegalArgumentException("Type de document non valide : " + documentType + ". Utilisez 'cv' ou 'lettreMotivation'.");
         }
         return candidatureRepository.save(candidature);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Long countByOffreId(Long offreId) {
+        return candidatureRepository.countByOffreId(offreId);
     }
 }

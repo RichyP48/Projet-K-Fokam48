@@ -164,6 +164,8 @@ public class CandidatureController {
         return ResponseEntity.ok("Applications service is working!");
     }
     
+
+    
     @PostMapping("/test-post")
     public ResponseEntity<String> testPost() {
         return ResponseEntity.ok("POST endpoint is working!");
@@ -205,20 +207,32 @@ public class CandidatureController {
     public ResponseEntity<List<CandidatureDto>> getCompanyApplications() {
         try {
             Long entrepriseId = userService.getCurrentUserId();
-            logger.info("Getting applications for company: {}", entrepriseId);
+            logger.info("🏢 Getting applications for company: {}", entrepriseId);
+            
+            if (entrepriseId == null) {
+                logger.error("❌ Company ID is null - JWT token might be invalid");
+                return ResponseEntity.ok(List.of());
+            }
+            
             List<CandidatureDto> candidatures = ((CandidatureServiceImpl) candidatureService).findEnrichedByEntrepriseId(entrepriseId);
-            logger.info("Found {} applications for company {}", candidatures.size(), entrepriseId);
+            logger.info("📝 Found {} applications for company {}", candidatures.size(), entrepriseId);
+            
+            // Debug: log first few applications
+            if (!candidatures.isEmpty()) {
+                logger.info("📋 Sample application: {}", candidatures.get(0));
+            }
+            
             return ResponseEntity.ok(candidatures);
         } catch (Exception e) {
-            logger.error("Error getting company applications: {}", e.getMessage(), e);
+            logger.error("❌ Error getting company applications: {}", e.getMessage(), e);
             return ResponseEntity.ok(List.of());
         }
     }
     
     @GetMapping("/entreprise/{entrepriseId}")
     public ResponseEntity<List<CandidatureDto>> getCandidaturesByEntreprise(@PathVariable Long entrepriseId) {
-        List<Candidature> candidatures = candidatureService.findByEntrepriseId(entrepriseId);
-        return ResponseEntity.ok(CandidatureMapper.toDtoList(candidatures));
+        List<CandidatureDto> candidatures = ((CandidatureServiceImpl) candidatureService).findEnrichedByEntrepriseId(entrepriseId);
+        return ResponseEntity.ok(candidatures);
     }
     
     @GetMapping("/enseignant/me")
@@ -264,6 +278,12 @@ public class CandidatureController {
             e.printStackTrace();
         }
         return ResponseEntity.ok(result);
+    }
+    
+    @GetMapping("/offre/{offreId}/count")
+    public ResponseEntity<Long> countApplicationsByOfferId(@PathVariable Long offreId) {
+        Long count = candidatureService.countByOffreId(offreId);
+        return ResponseEntity.ok(count);
     }
 }
 
