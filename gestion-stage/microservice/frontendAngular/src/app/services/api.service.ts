@@ -219,8 +219,10 @@ export class ApiService {
       .set('page', page.toString())
       .set('size', size.toString());
     
+    // SECURITY FIX: Always use the secure company endpoint
+    // The backend will handle offer filtering if needed
     if (offerId) {
-      return this.http.get(`${this.apiUrl}/candidatures/offre/${offerId}`, { params });
+      params = params.set('offerId', offerId.toString());
     }
     
     return this.http.get(`${this.apiUrl}/candidatures/entreprise/me`, { params });

@@ -109,43 +109,16 @@ export class CompanyAgreementsComponent implements OnInit {
     this.loading = true;
     this.conventionService.getCompanyConventions(0, 50).subscribe({
       next: (response: any) => {
-        this.conventions = response.content || response || [];
+        console.log('Convention response:', response);
+        this.conventions = Array.isArray(response) ? response : (response.content || response || []);
+        console.log('Conventions loaded:', this.conventions.length);
         this.loading = false;
       },
       error: (error: any) => {
+        console.error('Error loading conventions:', error);
         this.notificationService.showError('Erreur lors du chargement des conventions');
         this.loading = false;
-        // Données de test en cas d'erreur
-        this.conventions = [
-          {
-            id: 1,
-            offerTitle: 'Stage Développement Web',
-            studentName: 'Jean Dupont',
-            status: 'PENDING_FACULTY_VALIDATION',
-            signedByStudent: true,
-            signedByCompany: false,
-            signedByFaculty: false,
-            approvedByAdmin: false,
-            studentSignatureDate: '2024-01-15',
-            companySignatureDate: undefined,
-            facultyValidationDate: undefined,
-            adminApprovalDate: undefined
-          },
-          {
-            id: 2,
-            offerTitle: 'Stage Marketing Digital',
-            studentName: 'Marie Martin',
-            status: 'PENDING_ADMIN_APPROVAL',
-            signedByStudent: true,
-            signedByCompany: false,
-            signedByFaculty: true,
-            approvedByAdmin: false,
-            studentSignatureDate: '2024-01-10',
-            companySignatureDate: undefined,
-            facultyValidationDate: '2024-01-14',
-            adminApprovalDate: undefined
-          }
-        ];
+        this.conventions = [];
       }
     });
   }

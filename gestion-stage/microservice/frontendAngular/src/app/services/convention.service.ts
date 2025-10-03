@@ -52,8 +52,7 @@ export class ConventionService {
 
   // Role-based methods
   getCompanyConventions(page = 0, size = 10): Observable<any> {
-    const entrepriseId = 4; // TODO: Récupérer depuis le JWT
-    return this.http.get(`${this.apiUrl}/conventions/entreprise/${entrepriseId}`);
+    return this.http.get(`${this.apiUrl}/conventions/entreprise`);
   }
 
   getStudentConventions(page = 0, size = 10): Observable<any> {

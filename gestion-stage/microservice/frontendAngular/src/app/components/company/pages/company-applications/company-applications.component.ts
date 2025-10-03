@@ -115,6 +115,16 @@ export class CompanyApplicationsComponent implements OnInit {
     this.loading = true;
     
     const userId = localStorage.getItem('user_id');
+    const userRole = localStorage.getItem('user_role');
+    
+    // SECURITY CHECK: Ensure user is a company
+    if (userRole !== 'ENTREPRISE') {
+      console.error('🚨 SECURITY: Non-company user trying to access company applications');
+      this.notificationService.showError('Accès non autorisé');
+      this.loading = false;
+      return;
+    }
+    
     console.log('🏢 Company', userId, 'loading applications...');
     
     this.applicationService.getCompanyApplications(0, 50, this.offerId || undefined).subscribe({

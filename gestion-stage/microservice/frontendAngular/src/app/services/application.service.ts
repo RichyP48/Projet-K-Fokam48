@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { ApiService } from './api.service';
 import { Application, ApplicationStatusUpdateRequest } from '../models/application.model';
 
@@ -34,6 +34,13 @@ export class ApplicationService {
    * @param offerId Optional filter by offer ID
    */
   getCompanyApplications(page = 0, size = 10, offerId?: number): Observable<any> {
+    // SECURITY CHECK: Ensure user is a company
+    const userRole = localStorage.getItem('user_role');
+    if (userRole !== 'ENTREPRISE') {
+      console.error('🚨 SECURITY: Non-company user trying to access company applications');
+      return throwError(() => new Error('Unauthorized access'));
+    }
+    
     return this.apiService.getCompanyApplications(page, size, offerId);
   }
 
@@ -82,6 +89,13 @@ export class ApplicationService {
    * @param applicationId Application ID
    */
   acceptApplication(applicationId: number): Observable<any> {
+    // SECURITY CHECK: Ensure user is a company
+    const userRole = localStorage.getItem('user_role');
+    if (userRole !== 'ENTREPRISE') {
+      console.error('🚨 SECURITY: Non-company user trying to accept application');
+      return throwError(() => new Error('Unauthorized access'));
+    }
+    
     return this.apiService.put(`/candidatures/${applicationId}/accept`, {});
   }
 
@@ -91,6 +105,13 @@ export class ApplicationService {
    * @param reason Rejection reason
    */
   rejectApplication(applicationId: number, reason: string): Observable<any> {
+    // SECURITY CHECK: Ensure user is a company
+    const userRole = localStorage.getItem('user_role');
+    if (userRole !== 'ENTREPRISE') {
+      console.error('🚨 SECURITY: Non-company user trying to reject application');
+      return throwError(() => new Error('Unauthorized access'));
+    }
+    
     return this.apiService.put(`/candidatures/${applicationId}/reject`, { reason });
   }
 }

@@ -26,6 +26,7 @@ public class CandidatureServiceImpl implements CandidatureService {
     private final StateMachineService stateMachineService;
     private final FileStorageService fileStorageService;
     private final com.mogou.client.OffersClient offersClient;
+    private final com.mogou.client.ConventionsClient conventionsClient;
 
     @Override
     @Transactional
@@ -69,7 +70,7 @@ public class CandidatureServiceImpl implements CandidatureService {
                 .collect(java.util.stream.Collectors.toList());
     }
     
-    private CandidatureDto enrichCandidatureWithOfferInfo(Candidature candidature) {
+    public CandidatureDto enrichCandidatureWithOfferInfo(Candidature candidature) {
         CandidatureDto dto = CandidatureMapper.toDto(candidature);
         try {
             com.mogou.client.OfferDto offer = offersClient.getOfferById(candidature.getOffreId());
@@ -186,21 +187,24 @@ public class CandidatureServiceImpl implements CandidatureService {
             com.mogou.client.OfferDto offer = offersClient.getOfferById(candidature.getOffreId());
             
             // Create convention generation request
-            Map<String, Object> conventionRequest = new java.util.HashMap<>();
-            conventionRequest.put("candidatureId", candidature.getId());
-            conventionRequest.put("etudiantId", candidature.getEtudiantId());
-            conventionRequest.put("entrepriseId", offer.getEntrepriseId());
-            conventionRequest.put("offreId", candidature.getOffreId());
-            conventionRequest.put("titre", offer.getTitre());
-            conventionRequest.put("duree", offer.getDuree());
-            conventionRequest.put("dateDebut", java.time.LocalDate.now().plusDays(30)); // Start in 30 days
+            com.mogou.client.ConventionsClient.GenerateConventionRequest request = 
+                new com.mogou.client.ConventionsClient.GenerateConventionRequest();
+            request.setCandidatureId(candidature.getId());
+            request.setEtudiantId(candidature.getEtudiantId());
+            request.setEntrepriseId(offer.getEntrepriseId());
+            request.setOffreId(candidature.getOffreId());
+            request.setTitre(offer.getTitre());
+            request.setDuree(offer.getDuree());
+            request.setDateDebut(java.time.LocalDate.now().plusDays(30).toString());
             
-            // TODO: Call conventions service to generate convention
-            System.out.println("Convention generation triggered for application: " + candidature.getId());
+            // Call conventions service to generate convention
+            com.mogou.client.ConventionsClient.ConventionDto convention = conventionsClient.generateConvention(request);
+            System.out.println("✅ Convention generated successfully: ID=" + convention.getId() + ", Status=" + convention.getStatut());
             
         } catch (Exception e) {
-            System.err.println("Failed to generate convention: " + e.getMessage());
-            throw new RuntimeException("Convention generation failed", e);
+            System.err.println("❌ Failed to generate convention: " + e.getMessage());
+            // Don't throw exception to avoid breaking the application acceptance flow
+            System.err.println("⚠️ Application accepted but convention generation failed");
         }
     }
 
@@ -239,5 +243,42 @@ public class CandidatureServiceImpl implements CandidatureService {
     @Transactional(readOnly = true)
     public Long countByOffreId(Long offreId) {
         return candidatureRepository.countByOffreId(offreId);
+    }
+    
+    /**
+     * Validates if a user is authorized to access applications for a specific company
+     */
+    public boolean validateCompanyAccess(Long companyId, Long userId) {
+        try {
+            // Only the company itself can access its applications
+            boolean authorized = companyId.equals(userId);
+            
+            System.out.println("🔒 Company access validation: Company " + companyId + ", User " + userId + ", Authorized: " + authorized);
+            
+            return authorized;
+        } catch (Exception e) {
+            System.err.println("❌ Company access validation failed: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Validates if a user is authorized to access a specific offer's applications
+     */
+    public boolean validateOfferAccess(Long offerId, Long userId) {
+        try {
+            // Get the offer details
+            com.mogou.client.OfferDto offer = offersClient.getOfferById(offerId);
+            
+            // Only the company that owns the offer can access its applications
+            boolean authorized = offer.getEntrepriseId().equals(userId);
+            
+            System.out.println("🔒 Offer access validation: Offer " + offerId + " owned by company " + offer.getEntrepriseId() + ", User " + userId + ", Authorized: " + authorized);
+            
+            return authorized;
+        } catch (Exception e) {
+            System.err.println("❌ Offer access validation failed: " + e.getMessage());
+            return false;
+        }
     }
 }

@@ -4,7 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "offers-service")
+@FeignClient(name = "offers-service", configuration = com.mogou.config.FeignConfig.class)
 public interface OffersClient {
     
     @GetMapping("/api/offers/{id}/validate")

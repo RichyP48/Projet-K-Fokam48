@@ -74,11 +74,6 @@ spring:
               uri: lb://conventions-service
               predicates:
                 - Path=/api/conventions/**
-              filters:
-                - name: CircuitBreaker
-                  args:
-                    name: conventionsServiceCB
-                    fallbackUri: forward:/fallback/conventions-service
 
 
             - id: evaluation-service

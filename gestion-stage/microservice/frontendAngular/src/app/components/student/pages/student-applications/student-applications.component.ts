@@ -14,6 +14,24 @@ import { NotificationService } from '../../../../services/notification.service';
         <h1 class="text-2xl font-bold text-primary-900">Mes candidatures</h1>
       </div>
       
+      <!-- Status Filter -->
+      <div class="bg-white rounded-lg shadow-sm border p-6">
+        <div class="flex space-x-2">
+          <button (click)="filterByStatus('ALL')" [class]="selectedFilter === 'ALL' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+            Toutes ({{applications.length}})
+          </button>
+          <button (click)="filterByStatus('PENDING')" [class]="selectedFilter === 'PENDING' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+            En attente ({{getCountByStatus(['PENDING', 'POSTULE', 'EN_ATTENTE'])}})
+          </button>
+          <button (click)="filterByStatus('ACCEPTED')" [class]="selectedFilter === 'ACCEPTED' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+            Acceptées ({{getCountByStatus(['ACCEPTED', 'ACCEPTE'])}})
+          </button>
+          <button (click)="filterByStatus('REJECTED')" [class]="selectedFilter === 'REJECTED' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+            Refusées ({{getCountByStatus(['REJECTED', 'REFUSE'])}})
+          </button>
+        </div>
+      </div>
+      
       <div class="bg-white rounded-lg shadow-sm border  p-6">
         <div *ngIf="applications.length === 0" class="text-center py-12">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -28,7 +46,7 @@ import { NotificationService } from '../../../../services/notification.service';
           </div>
         </div>
 
-        <div *ngIf="applications.length > 0" class="overflow-x-auto">
+        <div *ngIf="filteredApplications.length > 0" class="overflow-x-auto">
           <table class="w-full">
             <thead class="bg-primary-50">
               <tr>
@@ -39,7 +57,7 @@ import { NotificationService } from '../../../../services/notification.service';
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let application of applications" class="border-b border-primary-100">
+              <tr *ngFor="let application of filteredApplications" class="border-b border-primary-100">
                 <td class="px-4 py-3">
                   <div>
                     <p class="font-medium text-primary-900">{{application.offerTitle || 'Offre ID: ' + application.offreId}}</p>
@@ -163,6 +181,8 @@ import { NotificationService } from '../../../../services/notification.service';
 })
 export class StudentApplicationsComponent implements OnInit {
   applications: any[] = [];
+  filteredApplications: any[] = [];
+  selectedFilter = 'ALL';
   selectedApplication: any = null;
 
   constructor(
@@ -178,10 +198,24 @@ export class StudentApplicationsComponent implements OnInit {
     this.apiService.getStudentApplications().subscribe({
       next: (response) => {
         this.applications = response.content || response;
+        console.log('🎓 Student applications loaded:', this.applications.length);
+        console.log('📊 Applications data:', this.applications);
+        
+        // Debug: Log status of each application
+        this.applications.forEach((app, index) => {
+          console.log(`🔍 App ${index}: ID=${app.id}`);
+          console.log(`   - app.status: "${app.status}"`);
+          console.log(`   - app.statut: "${app.statut}"`);
+          console.log(`   - OfferTitle: ${app.offerTitle}`);
+          console.log(`   - Full app object:`, app);
+        });
+        
+        this.applyFilter();
       },
       error: (error) => {
         console.warn('Service candidatures indisponible:', error.status);
         this.applications = [];
+        this.filteredApplications = [];
       }
     });
   }
@@ -249,5 +283,43 @@ export class StudentApplicationsComponent implements OnInit {
         }
       });
     }
+  }
+
+  filterByStatus(status: string): void {
+    this.selectedFilter = status;
+    this.applyFilter();
+  }
+
+  applyFilter(): void {
+    console.log('🔍 Applying filter:', this.selectedFilter);
+    console.log('📊 Total applications:', this.applications.length);
+    
+    if (this.selectedFilter === 'ALL') {
+      this.filteredApplications = this.applications;
+    } else if (this.selectedFilter === 'PENDING') {
+      this.filteredApplications = this.applications.filter(app => 
+        ['PENDING', 'POSTULE', 'EN_ATTENTE'].includes(app.status || app.statut)
+      );
+      console.log('⏳ Pending applications found:', this.filteredApplications.length);
+    } else if (this.selectedFilter === 'ACCEPTED') {
+      this.filteredApplications = this.applications.filter(app => 
+        ['ACCEPTED', 'ACCEPTE'].includes(app.status || app.statut)
+      );
+      console.log('✅ Accepted applications found:', this.filteredApplications.length);
+      this.filteredApplications.forEach(app => {
+        console.log(`   - App ${app.id}: ${app.status || app.statut} (${app.offerTitle})`);
+      });
+    } else if (this.selectedFilter === 'REJECTED') {
+      this.filteredApplications = this.applications.filter(app => 
+        ['REJECTED', 'REFUSE'].includes(app.status || app.statut)
+      );
+      console.log('❌ Rejected applications found:', this.filteredApplications.length);
+    }
+    
+    console.log('📋 Filtered applications:', this.filteredApplications.length);
+  }
+
+  getCountByStatus(statuses: string[]): number {
+    return this.applications.filter(app => statuses.includes(app.status || app.statut)).length;
   }
 }
