@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "applications-service")
+@FeignClient(name = "applications-service", configuration = com.mogou.config.FeignConfig.class)
 public interface ApplicationClient {
     @GetMapping("/api/candidatures/{id}")
     CandidatureDetailsDto getCandidatureById(@PathVariable("id") Long id);
     
-    @GetMapping("/api/candidatures/entreprise/{entrepriseId}")
-    List<CandidatureDetailsDto> getCandidaturesByEntreprise(@PathVariable("entrepriseId") Long entrepriseId);
+    @GetMapping("/api/candidatures/entreprise/me")
+    List<CandidatureDetailsDto> getCandidaturesByEntreprise();
 }

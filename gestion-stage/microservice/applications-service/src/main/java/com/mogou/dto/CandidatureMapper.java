@@ -38,6 +38,7 @@ public class CandidatureMapper {
     private static String mapStatusToEnglish(StatutCandidature statut) {
         switch (statut) {
             case POSTULE: return "PENDING";
+            case EN_ATTENTE: return "PENDING";
             case ACCEPTE: return "ACCEPTED";
             case REFUSE: return "REJECTED";
             case RETIRE: return "WITHDRAWN";

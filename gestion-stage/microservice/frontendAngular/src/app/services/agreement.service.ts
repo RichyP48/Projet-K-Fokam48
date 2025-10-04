@@ -59,4 +59,8 @@ export class AgreementService {
   signAgreementAsCompany(agreementId: number): Observable<any> {
     return this.apiService.signCompanyAgreement(agreementId);
   }
+
+  getAgreementById(agreementId: number): Observable<any> {
+    return this.apiService.get(`/agreements/${agreementId}`);
+  }
 }

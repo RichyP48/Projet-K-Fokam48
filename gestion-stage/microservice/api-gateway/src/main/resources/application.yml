@@ -66,7 +66,7 @@ spring:
                 - Path=/api/test/**
 
             - id: applications-service
-              uri: http://localhost:8082
+              uri: lb://applications-service
               predicates:
                 - Path=/api/candidatures/**
 
@@ -74,11 +74,6 @@ spring:
               uri: lb://conventions-service
               predicates:
                 - Path=/api/conventions/**
-              filters:
-                - name: CircuitBreaker
-                  args:
-                    name: conventionsServiceCB
-                    fallbackUri: forward:/fallback/conventions-service
 
 
             - id: evaluation-service
@@ -196,6 +191,9 @@ eureka:
   instance:
     hostname: localhost
     instance-id: ${spring.application.name}:${server.port}
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
 
 
 

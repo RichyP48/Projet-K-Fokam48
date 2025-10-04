@@ -321,31 +321,29 @@ export class OfferApplyComponent implements OnInit {
     
     this.isSubmitting = true;
     
-    const formData = new FormData();
-    formData.append('offerId', this.offerId.toString());
-    formData.append('coverLetter', this.applicationForm.value.coverLetter);
-    formData.append('availableFrom', this.applicationForm.value.availableFrom);
+    const coverLetter = this.applicationForm.value.coverLetter;
     
-    if (this.applicationForm.value.availableTo) {
-      formData.append('availableTo', this.applicationForm.value.availableTo);
-    }
-    
-    if (this.applicationForm.value.additionalInfo) {
-      formData.append('additionalInfo', this.applicationForm.value.additionalInfo);
-    }
-    
-    // Append the file
-    formData.append('resume', this.file);
-    
-    this.applicationService.submitApplication(formData).subscribe({
+    this.applicationService.submitApplication(this.offerId, coverLetter, this.file!).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.submitted = true;
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.error = err.message || 'Failed to submit application. Please try again.';
         console.error('Error submitting application:', err);
+        
+        // Extract error message from response
+        let errorMessage = 'Erreur lors de l\'envoi de la candidature. Veuillez réessayer.';
+        
+        if (err.error && err.error.error) {
+          errorMessage = err.error.error;
+        } else if (err.error && typeof err.error === 'string') {
+          errorMessage = err.error;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        this.error = errorMessage;
       }
     });
   }

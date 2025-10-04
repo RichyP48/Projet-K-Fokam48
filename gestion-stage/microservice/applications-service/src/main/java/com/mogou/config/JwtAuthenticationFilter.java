@@ -1,0 +1,1 @@
+// File removed - JWT authentication disabled

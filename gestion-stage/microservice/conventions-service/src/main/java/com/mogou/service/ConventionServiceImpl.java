@@ -130,10 +130,17 @@ public class ConventionServiceImpl implements ConventionService {
     
     @Override
     public List<Convention> findByEntrepriseId(Long entrepriseId) {
-        // Récupérer les candidatures de l'entreprise puis les conventions associées
-        List<CandidatureDetailsDto> candidatures = applicationClient.getCandidaturesByEntreprise(entrepriseId);
-        List<Long> candidatureIds = candidatures.stream().map(CandidatureDetailsDto::getId).toList();
-        return conventionRepository.findByCandidatureIdIn(candidatureIds);
+        try {
+            // Récupérer les candidatures de l'entreprise puis les conventions associées
+            List<CandidatureDetailsDto> candidatures = applicationClient.getCandidaturesByEntreprise();
+            List<Long> candidatureIds = candidatures.stream().map(CandidatureDetailsDto::getId).toList();
+            System.out.println("[CONVENTIONS] Found " + candidatureIds.size() + " candidature IDs: " + candidatureIds);
+            return conventionRepository.findByCandidatureIdIn(candidatureIds);
+        } catch (Exception e) {
+            System.out.println("[CONVENTIONS] Error calling applications service: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
     }
 
 
@@ -141,7 +148,12 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     public byte[] getConventionPdf(Long id) {
         Convention convention = findById(id);
-        return fileStorageService.downloadFile(convention.getDocumentPath());
+        try {
+            return fileStorageService.downloadFile(convention.getDocumentPath());
+        } catch (Exception e) {
+            System.out.println("PDF not found: " + convention.getDocumentPath());
+            return new byte[0]; // Return empty byte array instead of throwing exception
+        }
     }
 
     @Override

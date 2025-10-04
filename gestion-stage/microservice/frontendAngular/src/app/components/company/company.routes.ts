@@ -7,6 +7,10 @@ export const COMPANY_ROUTES: Routes = [
   },
   {
     path: 'offers',
+    loadComponent: () => import('./company-offers/company-offers.component').then(m => m.CompanyOffersComponent)
+  },
+  {
+    path: 'offers-old',
     loadComponent: () => import('./pages/company-offers/company-offers.component').then(m => m.CompanyOffersComponent)
   },
   {

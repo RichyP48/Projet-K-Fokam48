@@ -13,7 +13,7 @@ import { Subscription } from 'rxjs';
   template: `
     <div class="container mx-auto px-4 py-8">
       <div class="mb-6">
-        <a routerLink="/company" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+        <a routerLink="/company" class="inline-flex items-center text-primary-600 hover:text-primary-800">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -25,7 +25,7 @@ import { Subscription } from 'rxjs';
         <h1 class="text-3xl font-bold text-gray-900">Mes offres de stage</h1>
         <a 
           routerLink="/company/offers/create" 
-          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -66,7 +66,7 @@ import { Subscription } from 'rxjs';
       
       <!-- Loading -->
       <div *ngIf="loading" class="flex justify-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
       </div>
       
       <!-- Debug Info -->
@@ -84,7 +84,7 @@ import { Subscription } from 'rxjs';
           <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune offre</h3>
           <p class="mt-1 text-sm text-gray-500">Commencez par créer votre première offre de stage.</p>
           <div class="mt-6">
-            <a routerLink="/company/offers/create" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+            <a routerLink="/company/offers/create" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
               Créer une offre
             </a>
           </div>
@@ -95,9 +95,9 @@ import { Subscription } from 'rxjs';
             <div class="flex justify-between items-start">
               <div class="flex-1">
                 <div class="flex items-center space-x-2 mb-2">
-                  <h3 class="text-lg font-semibold text-gray-900">{{offer.title}}</h3>
-                  <span [ngClass]="getStatusClass(offer.status)" class="px-2 py-1 text-xs font-medium rounded-full">
-                    {{getStatusLabel(offer.status)}}
+                  <h3 class="text-lg font-semibold text-gray-900">{{offer.titre || offer.title}}</h3>
+                  <span [ngClass]="getStatusClass(offer.statut || offer.status)" class="px-2 py-1 text-xs font-medium rounded-full">
+                    {{getStatusLabel(offer.statut || offer.status)}}
                   </span>
                 </div>
                 <p class="text-gray-600 mb-3 line-clamp-2">{{offer.description}}</p>
@@ -107,13 +107,13 @@ import { Subscription } from 'rxjs';
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
-                    {{offer.location}}
+                    {{offer.localisation || offer.location}}
                   </span>
                   <span class="flex items-center">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{offer.duration}} mois
+                    {{offer.duree || offer.duration}} mois
                   </span>
                   <span class="flex items-center">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +124,7 @@ import { Subscription } from 'rxjs';
                 </div>
               </div>
               <div class="flex space-x-2 ml-4">
-                <a [routerLink]="['/company/offers', offer.id, 'edit']" class="p-2 text-blue-600 hover:text-blue-800">
+                <a [routerLink]="['/company/offers', offer.id, 'edit']" class="p-2 text-primary-600 hover:text-primary-800">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                   </svg>
@@ -146,8 +146,8 @@ import { Subscription } from 'rxjs';
             </div>
             <div class="mt-4 pt-4 border-t border-gray-200">
               <div class="flex justify-between items-center text-sm text-gray-500">
-                <span>Créée le {{formatDate(offer.createdAt)}}</span>
-                <a [routerLink]="['/company/applications']" [queryParams]="{offerId: offer.id}" class="text-blue-600 hover:text-blue-800">
+                <span>Créée le {{formatDate(offer.datePublication || offer.createdAt)}}</span>
+                <a [routerLink]="['/company/applications']" [queryParams]="{offerId: offer.id}" class="text-primary-600 hover:text-primary-800">
                   Voir les candidatures
                 </a>
               </div>
@@ -287,18 +287,24 @@ export class CompanyOffersComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-100 text-green-800';
-      case 'INACTIVE': return 'bg-gray-100 text-gray-800';
-      case 'EXPIRED': return 'bg-red-100 text-red-800';
+      case 'ACTIVE':
+      case 'PUBLIEE': return 'bg-green-100 text-green-800';
+      case 'INACTIVE':
+      case 'BROUILLON': return 'bg-gray-100 text-gray-800';
+      case 'EXPIRED':
+      case 'EXPIREE': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   }
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'Actif';
-      case 'INACTIVE': return 'Inactif';
-      case 'EXPIRED': return 'Expiré';
+      case 'ACTIVE':
+      case 'PUBLIEE': return 'Actif';
+      case 'INACTIVE':
+      case 'BROUILLON': return 'Inactif';
+      case 'EXPIRED':
+      case 'EXPIREE': return 'Expiré';
       default: return status;
     }
   }

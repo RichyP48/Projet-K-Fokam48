@@ -25,6 +25,7 @@ import java.time.LocalDate;
 public class OffreStageServiceImpl implements OffreStageService {
 
     private final OffreStageRepository offreStageRepository;
+    private final com.mogou.client.ApplicationsClient applicationsClient;
     // private final com.mogou.client.UserClient userClient; // Temporairement désactivé
 
     // ... (Le reste du code de la classe reste le même)
@@ -132,6 +133,15 @@ public class OffreStageServiceImpl implements OffreStageService {
         dto.setStatut(offre.getStatut());
         dto.setDatePublication(offre.getDatePublication());
         dto.setDateExpiration(offre.getDateExpiration());
+        
+        // Compter les candidatures
+        try {
+            Long applicationCount = applicationsClient.countApplicationsByOfferId(offre.getId());
+            dto.setApplicationCount(applicationCount != null ? applicationCount.intValue() : 0);
+        } catch (Exception e) {
+            dto.setApplicationCount(0);
+        }
+        
         return dto;
     }
 }
