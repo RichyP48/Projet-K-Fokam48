@@ -33,6 +33,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Priorité aux headers X-User-Id et X-User-Roles propagés par l'API Gateway
+        String userIdHeader = request.getHeader("X-User-Id");
+        String roleHeader = request.getHeader("X-User-Roles");
+        
+        if (userIdHeader != null && roleHeader != null) {
+            System.out.println("[JWT-FILTER] Using headers from Gateway - UserId: " + userIdHeader + ", Role: " + roleHeader);
+            
+            String authority = roleHeader.startsWith("ROLE_") ? roleHeader.substring(5) : roleHeader;
+            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
+            
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userIdHeader, null, authorities
+            );
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Fallback: utiliser le JWT si pas de headers
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
@@ -48,27 +67,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtil.validateToken(jwt)) {
                 String role = jwtUtil.getRoleFromToken(jwt);
-                
-                // Normalise le rôle (supprime "ROLE_" si présent)
                 String authority = role.startsWith("ROLE_") ? role.substring(5) : role;
-                
-                // Ajoute l'autorité normalisée
                 List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
                 
-                System.out.println("[JWT-FILTER] User: " + userEmail + ", Role: " + authority + ", Path: " + path);
-                System.out.println("[JWT-FILTER] Authorities: " + authorities);
-                
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userEmail,  // principal = email
-                        jwt,        // credentials = token JWT
-                        authorities
+                        userEmail, jwt, authorities
                 );
-                authToken.setDetails(userEmail);
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-                
-                System.out.println("[JWT-FILTER] Authentication set successfully");
-            } else {
-                System.out.println("[JWT-FILTER] Token validation failed for user: " + userEmail);
             }
         }
         filterChain.doFilter(request, response);

@@ -25,6 +25,7 @@ public class ConventionController {
     private final ConventionService conventionService;
     private final UserService userService;
     private final com.mogou.repository.ConventionRepository conventionRepository;
+    private final com.mogou.repository.SignatureRepository signatureRepository;
 
     @PostMapping("/generate")
     @PreAuthorize("hasAuthority('ENTREPRISE')")
@@ -58,10 +59,51 @@ public class ConventionController {
     public ResponseEntity<List<Convention>> getConventionsByEtudiant(@PathVariable Long id) {
         return ResponseEntity.ok(conventionService.findByEtudiantId(id));
     }
+    
+    @GetMapping("/etudiant")
+    public ResponseEntity<List<com.mogou.dto.ConventionResponseDto>> getMyStudentConventions() {
+        Long etudiantId = userService.getCurrentUserId();
+        if (etudiantId == null) return ResponseEntity.ok(List.of());
+        List<Convention> conventions = conventionService.findByEtudiantId(etudiantId);
+        return ResponseEntity.ok(conventions.stream().map(this::enrichConvention).collect(java.util.stream.Collectors.toList()));
+    }
 
     @GetMapping("/enseignant/{id}")
     public ResponseEntity<List<Convention>> getConventionsByEnseignant(@PathVariable Long id) {
         return ResponseEntity.ok(conventionService.findByEnseignantId(id));
+    }
+    
+    @GetMapping("/enseignant")
+    public ResponseEntity<List<com.mogou.dto.ConventionResponseDto>> getMyTeacherConventions() {
+        try {
+            Long enseignantId = userService.getCurrentUserId();
+            System.out.println("[CONVENTIONS] Getting conventions for teacher ID: " + enseignantId);
+            if (enseignantId == null) {
+                System.out.println("[CONVENTIONS] No teacher ID found");
+                return ResponseEntity.ok(List.of());
+            }
+            
+            // Option 1: Conventions assignées à cet enseignant
+            List<Convention> assignedConventions = conventionService.findByEnseignantId(enseignantId);
+            
+            // Option 2: Toutes les conventions en attente de validation (pour que l'enseignant puisse les voir)
+            List<Convention> pendingConventions = conventionService.findPending();
+            
+            // Combiner les deux listes et supprimer les doublons
+            List<Convention> allConventions = new java.util.ArrayList<>(assignedConventions);
+            pendingConventions.forEach(conv -> {
+                if (!allConventions.contains(conv)) {
+                    allConventions.add(conv);
+                }
+            });
+            
+            System.out.println("[CONVENTIONS] Found " + allConventions.size() + " conventions for teacher (" + assignedConventions.size() + " assigned + " + pendingConventions.size() + " pending)");
+            return ResponseEntity.ok(allConventions.stream().map(this::enrichConvention).collect(java.util.stream.Collectors.toList()));
+        } catch (Exception e) {
+            System.out.println("[CONVENTIONS] Error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(List.of());
+        }
     }
     
     @GetMapping("/entreprise/{id}")
@@ -102,15 +144,21 @@ public class ConventionController {
         dto.setOfferTitle("Stage pour candidature " + convention.getCandidatureId());
         dto.setStudentName("Étudiant " + convention.getEtudiantId());
         
-        // Map French status to English
         String englishStatus = mapStatusToEnglish(convention.getStatut().toString());
         dto.setStatus(englishStatus);
         
-        // Set signature/approval status based on convention status
-        dto.setSignedByStudent(false); // TODO: Get from signatures table
-        dto.setSignedByCompany(false); // TODO: Get from signatures table
+        // Get real signatures from database
+        var studentSigs = signatureRepository.findByConvention_IdAndTypeSignataire(convention.getId(), com.mogou.model.TypeSignataire.ETUDIANT);
+        var companySigs = signatureRepository.findByConvention_IdAndTypeSignataire(convention.getId(), com.mogou.model.TypeSignataire.ENTREPRISE);
+        
+        dto.setSignedByStudent(!studentSigs.isEmpty());
+        dto.setSignedByCompany(!companySigs.isEmpty());
         dto.setSignedByFaculty(convention.getDateValidation() != null);
         dto.setApprovedByAdmin("APPROVED".equals(englishStatus));
+        
+        if (!studentSigs.isEmpty()) dto.setStudentSignatureDate(studentSigs.get(0).getDateSignature());
+        if (!companySigs.isEmpty()) dto.setCompanySignatureDate(companySigs.get(0).getDateSignature());
+        if (convention.getDateValidation() != null) dto.setFacultyValidationDate(convention.getDateValidation());
         
         return dto;
     }

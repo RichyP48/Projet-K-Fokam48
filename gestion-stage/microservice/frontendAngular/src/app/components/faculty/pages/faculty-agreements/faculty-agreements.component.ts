@@ -76,9 +76,6 @@ export class FacultyAgreementsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Test auth status
-    console.log('Current user token exists:', !!localStorage.getItem('token'));
-    console.log('Current user role:', localStorage.getItem('userRole'));
     this.loadPendingAgreements();
   }
 

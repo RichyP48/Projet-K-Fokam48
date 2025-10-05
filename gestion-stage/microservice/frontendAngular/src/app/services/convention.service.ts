@@ -56,13 +56,11 @@ export class ConventionService {
   }
 
   getStudentConventions(page = 0, size = 10): Observable<any> {
-    const etudiantId = 1; // TODO: Récupérer depuis le JWT
-    return this.http.get(`${this.apiUrl}/conventions/etudiant/${etudiantId}`);
+    return this.http.get(`${this.apiUrl}/conventions/etudiant`);
   }
 
   getTeacherConventions(page = 0, size = 10): Observable<any> {
-    const enseignantId = 2; // TODO: Récupérer depuis le JWT
-    return this.http.get(`${this.apiUrl}/conventions/enseignant/${enseignantId}`);
+    return this.http.get(`${this.apiUrl}/conventions/enseignant`);
   }
 
   getAdminConventions(page = 0, size = 20): Observable<any> {
@@ -72,7 +70,6 @@ export class ConventionService {
   // Signature methods
   signConventionAsCompany(conventionId: number): Observable<any> {
     const signRequest = {
-      signataireId: 4, // TODO: Récupérer depuis le JWT
       typeSignataire: 'ENTREPRISE'
     };
     return this.http.post(`${this.apiUrl}/conventions/${conventionId}/sign`, signRequest);
@@ -80,7 +77,6 @@ export class ConventionService {
 
   signConventionAsStudent(conventionId: number): Observable<any> {
     const signRequest = {
-      signataireId: 1, // TODO: Récupérer depuis le JWT
       typeSignataire: 'ETUDIANT'
     };
     return this.http.post(`${this.apiUrl}/conventions/${conventionId}/sign`, signRequest);

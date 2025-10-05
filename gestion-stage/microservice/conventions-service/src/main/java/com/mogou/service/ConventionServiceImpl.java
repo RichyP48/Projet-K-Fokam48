@@ -97,12 +97,19 @@ public class ConventionServiceImpl implements ConventionService {
     @Transactional
     public Convention sign(Long conventionId, SignConventionRequest request, HttpServletRequest httpServletRequest) {
         Convention convention = findById(conventionId);
+        
+        // Extract signataireId from X-User-Id header
+        Long signataireId = getCurrentUserId();
+        if (signataireId == null) {
+            throw new SecurityException("Unable to identify current user for signature");
+        }
+        
         byte[] pdfBytes = getConventionPdf(conventionId);
         String documentHash = calculateSHA256(pdfBytes);
 
         SignatureConvention signature = SignatureConvention.builder()
                 .convention(convention)
-                .signataireId(request.getSignataireId())
+                .signataireId(signataireId)
                 .typeSignataire(TypeSignataire.valueOf(request.getTypeSignataire().toUpperCase()))
                 .dateSignature(LocalDateTime.now())
                 .ipAddress(httpServletRequest.getRemoteAddr())
@@ -111,8 +118,8 @@ public class ConventionServiceImpl implements ConventionService {
         signatureRepository.save(signature);
 
         // Mettre à jour le statut après signature
-        long signCount = signatureRepository.countByConvention_Id(conventionId); // CORRIGÉ
-        if (signCount >= 2) { // Supposons 2 signatures requises (étudiant, entreprise)
+        long signCount = signatureRepository.countByConvention_Id(conventionId);
+        if (signCount >= 2) {
             convention.setStatut(StatutConvention.FINALISEE);
         } else {
             convention.setStatut(StatutConvention.SIGNEE);
