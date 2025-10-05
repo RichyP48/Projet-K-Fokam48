@@ -7,5 +7,6 @@ public class CandidatureDetailsDto {
     private Long id;
     private Long etudiantId;
     private Long offreId;
+    private Long entrepriseId;
     private String statut; // ex: "ACCEPTEE"
 }

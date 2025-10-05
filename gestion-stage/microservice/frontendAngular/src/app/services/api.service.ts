@@ -155,7 +155,7 @@ export class ApiService {
   }
 
   validateAgreement(agreementId: number, payload: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/agreements/${agreementId}/validate`, payload);
+    return this.http.put(`${this.apiUrl}/conventions/${agreementId}/validate`, payload);
   }
 
   // ===== ADMIN AGREEMENTS =====
@@ -176,11 +176,11 @@ export class ApiService {
   }
 
   approveAgreementAdmin(agreementId: number, payload: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/agreements/${agreementId}/approve`, payload);
+    return this.http.put(`${this.apiUrl}/conventions/${agreementId}/approve`, payload);
   }
 
   downloadAgreementPdf(agreementId: number): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/agreements/${agreementId}/pdf`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/conventions/${agreementId}/pdf`, { responseType: 'blob' });
   }
 
   // ===== APPLICATIONS =====
@@ -224,8 +224,8 @@ export class ApiService {
     if (offerId) {
       params = params.set('offerId', offerId.toString());
     }
-    
     return this.http.get(`${this.apiUrl}/candidatures/entreprise/me`, { params });
+    // return this.http.get(`${this.apiUrl}/candidatures/entreprise/me`, { params });
   }
 
   getApplicationById(applicationId: number): Observable<any> {
@@ -238,7 +238,7 @@ export class ApiService {
 
   // ===== AGREEMENTS =====
   getAgreementById(agreementId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/agreements/${agreementId}`);
+    return this.http.get(`${this.apiUrl}/conventions/${agreementId}`);
   }
 
   // ===== COMPANIES =====

@@ -10,5 +10,6 @@ public interface CandidatureRepository extends JpaRepository<Candidature, Long> 
     List<Candidature> findByEtudiantId(Long etudiantId);
     List<Candidature> findByOffreId(Long offreId);
     List<Candidature> findByOffreIdIn(List<Long> offreIds);
+    List<Candidature> findByEntrepriseId(Long entrepriseId);
     Long countByOffreId(Long offreId);
 }

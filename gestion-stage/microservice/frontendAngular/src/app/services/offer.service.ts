@@ -115,8 +115,13 @@ export class OfferService {
     const companyId = this.authService.getCurrentUserId();
     
     if (!companyId) {
-      throw new Error('User not authenticated');
+      console.error('❌ User not authenticated - no company ID found');
+      return new Observable(observer => {
+        observer.error({ error: 'User not authenticated', status: 401 });
+      });
     }
+    
+    console.log('🏢 Loading offers for company:', companyId);
     
     const params = new HttpParams()
       .set('page', page.toString())

@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/notifications_db
     username: postgres
-    password: pkf
+    password: 1985
     driver-class-name: org.postgresql.Driver
   sql:
     init:

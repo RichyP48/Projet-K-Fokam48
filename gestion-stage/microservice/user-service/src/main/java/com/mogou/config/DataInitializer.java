@@ -110,8 +110,8 @@ public class DataInitializer implements CommandLineRunner {
             UserProfile profile = new UserProfile();
             profile.setPrenom(firstName);
             profile.setNom(lastName);
-            profile.setTelephone("");
-            profile.setAdresse("");
+            profile.setTelephone(generatePhoneNumber(email));
+            profile.setAdresse(generateAddress(role));
             
             // Ajouter les références académiques
             if (role == Role.ETUDIANT && school != null) {
@@ -132,6 +132,37 @@ public class DataInitializer implements CommandLineRunner {
 
             userRepository.save(user);
             log.info("Utilisateur créé: {} avec le rôle {}", email, role);
+        }
+    }
+    
+    private String generatePhoneNumber(String email) {
+        // Générer des numéros de téléphone réalistes basés sur l'email
+        if (email.contains("richard")) return "+237 6 77 88 99 00";
+        if (email.contains("sarah")) return "+237 6 55 66 77 88";
+        if (email.contains("johan")) return "+237 6 99 00 11 22";
+        if (email.contains("marie")) return "+237 6 44 55 66 77";
+        if (email.contains("pierre")) return "+237 6 33 44 55 66";
+        if (email.contains("sophie")) return "+237 6 22 33 44 55";
+        if (email.contains("lucas")) return "+237 6 11 22 33 44";
+        if (email.contains("emma")) return "+237 6 88 99 00 11";
+        if (email.contains("test")) return "+237 6 12 34 56 78";
+        if (email.contains("research")) return "+237 2 22 33 44 55";
+        return "+237 6 00 11 22 33";
+    }
+    
+    private String generateAddress(Role role) {
+        // Générer des adresses réalistes selon le rôle
+        switch (role) {
+            case ADMIN:
+                return "123 Avenue de l'Administration, Yaoundé";
+            case ENSEIGNANT:
+                return "456 Rue des Professeurs, Yaoundé";
+            case ETUDIANT:
+                return "789 Quartier Universitaire, Yaoundé";
+            case ENTREPRISE:
+                return "321 Zone Industrielle, Douala";
+            default:
+                return "Yaoundé, Cameroun";
         }
     }
 }

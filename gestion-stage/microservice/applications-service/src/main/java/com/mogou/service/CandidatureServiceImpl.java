@@ -31,22 +31,73 @@ public class CandidatureServiceImpl implements CandidatureService {
     @Override
     @Transactional
     public Candidature create(CreateCandidatureRequest request) {
-        if (candidatureRepository.existsByEtudiantIdAndOffreId(request.getEtudiantId(), request.getOffreId())) {
-            throw new IllegalStateException("Une candidature pour cette offre existe déjà pour cet étudiant.");
+        System.out.println("🚀 Creating candidature for student " + request.getEtudiantId() + " and offer " + request.getOffreId());
+        
+        // Validate request
+        if (request.getEtudiantId() == null) {
+            throw new IllegalArgumentException("Student ID cannot be null");
+        }
+        if (request.getOffreId() == null) {
+            throw new IllegalArgumentException("Offer ID cannot be null");
+        }
+        
+        // Check for existing candidature
+        try {
+            if (candidatureRepository.existsByEtudiantIdAndOffreId(request.getEtudiantId(), request.getOffreId())) {
+                throw new IllegalStateException("Une candidature pour cette offre existe déjà pour cet étudiant.");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error checking existing candidature: " + e.getMessage());
+            throw new RuntimeException("Database error while checking existing candidature: " + e.getMessage());
         }
 
-        Candidature candidature = Candidature.builder()
-                .etudiantId(request.getEtudiantId())
-                .offreId(request.getOffreId())
-                .statut(StatutCandidature.POSTULE)
-                .datePostulation(LocalDateTime.now())
-                .commentaires(request.getCommentaires())
-                .build();
+        // Récupérer l'entrepriseId depuis l'offre
+        Long entrepriseId;
+        try {
+            System.out.println("📞 Calling offers-service for offer ID: " + request.getOffreId());
+            com.mogou.client.OfferDto offer = offersClient.getOfferById(request.getOffreId());
+            if (offer == null) {
+                throw new IllegalStateException("Offer not found with ID: " + request.getOffreId());
+            }
+            entrepriseId = offer.getEntrepriseId();
+            if (entrepriseId == null) {
+                throw new IllegalStateException("Offer has no company ID: " + request.getOffreId());
+            }
+            System.out.println("✅ Retrieved company ID: " + entrepriseId + " for offer: " + request.getOffreId());
+        } catch (FeignException e) {
+            System.err.println("❌ Feign error calling offers-service: " + e.getMessage());
+            throw new IllegalStateException("Service communication error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("❌ Unexpected error retrieving offer: " + e.getMessage());
+            e.printStackTrace();
+            throw new IllegalStateException("Impossible de récupérer les informations de l'offre: " + e.getMessage());
+        }
 
-        Candidature savedCandidature = candidatureRepository.save(candidature);
-        stateMachineService.createInitialHistory(savedCandidature);
+        try {
+            System.out.println("💾 Building candidature object...");
+            Candidature candidature = Candidature.builder()
+                    .etudiantId(request.getEtudiantId())
+                    .offreId(request.getOffreId())
+                    .entrepriseId(entrepriseId)
+                    .statut(StatutCandidature.POSTULE)
+                    .datePostulation(LocalDateTime.now())
+                    .commentaires(request.getCommentaires())
+                    .build();
 
-        return savedCandidature;
+            System.out.println("💾 Saving candidature to database...");
+            Candidature savedCandidature = candidatureRepository.save(candidature);
+            System.out.println("✅ Candidature saved with ID: " + savedCandidature.getId());
+            
+            System.out.println("📝 Creating initial history...");
+            stateMachineService.createInitialHistory(savedCandidature);
+            System.out.println("✅ Initial history created");
+
+            return savedCandidature;
+        } catch (Exception e) {
+            System.err.println("❌ Error saving candidature: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Database error while saving candidature: " + e.getMessage());
+        }
     }
 
     @Override
@@ -112,29 +163,8 @@ public class CandidatureServiceImpl implements CandidatureService {
         try {
             System.out.println("🔍 Looking for applications for company: " + entrepriseId);
             
-            // Récupérer les offres de l'entreprise
-            List<com.mogou.client.OfferDto> offers;
-            try {
-                offers = offersClient.getOffersByCompanyId(entrepriseId);
-                System.out.println("📋 Found " + offers.size() + " offers for company " + entrepriseId);
-            } catch (feign.FeignException.NotFound e) {
-                System.out.println("❌ Company " + entrepriseId + " not found or has no offers");
-                return List.of();
-            } catch (Exception e) {
-                System.err.println("❌ Error calling offers-service for company " + entrepriseId + ": " + e.getMessage());
-                return List.of();
-            }
-            
-            if (offers == null || offers.isEmpty()) {
-                System.out.println("❌ No offers found for company " + entrepriseId);
-                return List.of();
-            }
-            
-            List<Long> offerIds = offers.stream().map(com.mogou.client.OfferDto::getId).collect(java.util.stream.Collectors.toList());
-            System.out.println("🎯 Offer IDs: " + offerIds);
-            
-            // Récupérer toutes les candidatures pour ces offres
-            List<Candidature> candidatures = candidatureRepository.findByOffreIdIn(offerIds);
+            // Utiliser directement le champ entrepriseId pour une requête plus efficace
+            List<Candidature> candidatures = candidatureRepository.findByEntrepriseId(entrepriseId);
             System.out.println("📝 Found " + candidatures.size() + " applications for company " + entrepriseId);
             
             return candidatures;

@@ -179,11 +179,34 @@ export class CompanyApplicationsComponent implements OnInit {
   }
 
   private createAgreement(application: any): void {
+    const userId = localStorage.getItem('user_id');
+    const userName = localStorage.getItem('user_name') || 'Entreprise';
+    
     const agreementData = {
-      applicationId: application.id,
-      studentId: application.studentId,
-      companyId: application.companyId,
-      offerId: application.offerId
+      candidatureId: application.id,
+      enseignantId: 1, // TODO: Get from application or user selection
+      conventionData: {
+        // Étudiant
+        etudiantId: application.etudiantId || application.studentId,
+        nomEtudiant: application.studentName || 'Étudiant',
+        filiereEtudiant: application.filiere || 'Non spécifié',
+        niveauEtudiant: application.niveau || 'Non spécifié',
+        
+        // Entreprise
+        entrepriseId: userId ? parseInt(userId) : 0,
+        nomEntreprise: userName,
+        secteurEntreprise: 'Non spécifié',
+        adresseEntreprise: 'Non spécifié',
+        
+        // Stage
+        dureeStage: '6 mois',
+        missionsStage: application.offerTitle || 'Stage',
+        competences: 'À définir',
+        
+        // Enseignant
+        enseignantId: 1,
+        nomEnseignant: 'À assigner'
+      }
     };
 
     this.agreementService.createAgreement(agreementData).subscribe({

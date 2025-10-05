@@ -12,6 +12,7 @@ public class CandidatureDto {
     private Long id;
     private Long etudiantId;
     private Long offreId;
+    private Long entrepriseId;
     private StatutCandidature statut;
     private LocalDateTime datePostulation;
     private boolean hasCv;
@@ -27,6 +28,7 @@ public class CandidatureDto {
     // Champs pour compatibilité frontend (mapping anglais)
     private Long studentId;
     private Long offerId;
+    private Long companyId;
     private String status;
     private LocalDateTime applicationDate;
     private String coverLetter;

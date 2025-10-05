@@ -28,6 +28,7 @@ public class DataInitializer implements CommandLineRunner {
             Candidature candidature1 = Candidature.builder()
                 .etudiantId(2L)
                 .offreId(1L)
+                .entrepriseId(4L) // Research Center PKF
                 .statut(StatutCandidature.POSTULE)
                 .datePostulation(LocalDateTime.now().minusDays(5))
                 .commentaires("Candidature test pour stage développement")
@@ -36,6 +37,7 @@ public class DataInitializer implements CommandLineRunner {
             Candidature candidature2 = Candidature.builder()
                 .etudiantId(2L)
                 .offreId(2L)
+                .entrepriseId(4L) // Research Center PKF
                 .statut(StatutCandidature.EN_ATTENTE)
                 .datePostulation(LocalDateTime.now().minusDays(3))
                 .commentaires("Candidature test pour stage marketing")
