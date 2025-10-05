@@ -139,17 +139,10 @@ public class ConventionServiceImpl implements ConventionService {
     
     @Override
     public List<Convention> findByEntrepriseId(Long entrepriseId) {
-        try {
-            // Récupérer les candidatures de l'entreprise puis les conventions associées
-            List<CandidatureDetailsDto> candidatures = applicationClient.getCandidaturesByEntreprise();
-            List<Long> candidatureIds = candidatures.stream().map(CandidatureDetailsDto::getId).toList();
-            System.out.println("[CONVENTIONS] Found " + candidatureIds.size() + " candidature IDs: " + candidatureIds);
-            return conventionRepository.findByCandidatureIdIn(candidatureIds);
-        } catch (Exception e) {
-            System.out.println("[CONVENTIONS] Error calling applications service: " + e.getMessage());
-            e.printStackTrace();
-            return List.of();
-        }
+        System.out.println("[CONVENTIONS] Finding conventions for entrepriseId: " + entrepriseId);
+        List<Convention> conventions = conventionRepository.findByEntrepriseId(entrepriseId);
+        System.out.println("[CONVENTIONS] Found " + conventions.size() + " conventions");
+        return conventions;
     }
 
 
