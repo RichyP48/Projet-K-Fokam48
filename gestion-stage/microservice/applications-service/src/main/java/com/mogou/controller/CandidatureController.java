@@ -154,6 +154,7 @@ public class CandidatureController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
 
     /**
      * Récupère toutes les candidatures pour une offre de stage donnée.
@@ -203,6 +204,24 @@ public class CandidatureController {
             return ResponseEntity.ok(CandidatureMapper.toDto(candidature));
         } catch (Exception e) {
             logger.error("Error getting application {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * INTERNAL ENDPOINT: Récupère une candidature sans vérification de sécurité (pour appels inter-services)
+     * Endpoint: GET /api/candidatures/internal/{id}
+     * @param id L'identifiant de la candidature.
+     * @return La candidature correspondante.
+     */
+    @GetMapping("/internal/{id}")
+    public ResponseEntity<CandidatureDto> getCandidatureByIdInternal(@PathVariable Long id) {
+        try {
+            logger.info("[INTERNAL] Fetching application {} for inter-service call", id);
+            Candidature candidature = candidatureService.findById(id);
+            return ResponseEntity.ok(CandidatureMapper.toDto(candidature));
+        } catch (Exception e) {
+            logger.error("[INTERNAL] Error getting application {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

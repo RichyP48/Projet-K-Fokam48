@@ -17,7 +17,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/reporting_db}
     username: postgres
-    password: pkf
+    password: 1985
     driver-class-name: org.postgresql.Driver
 
   # ===============================================

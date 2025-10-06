@@ -29,6 +29,21 @@ public class JwtUtil {
     public String getRoleFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("role", String.class));
     }
+    
+    public Long getUserIdFromToken(String token) {
+        return getClaimFromToken(token, claims -> {
+            Object userId = claims.get("userId");
+            if (userId == null) userId = claims.get("user_id");
+            if (userId == null) userId = claims.get("company_id");
+            if (userId instanceof Number) {
+                return ((Number) userId).longValue();
+            }
+            if (userId != null) {
+                return Long.valueOf(userId.toString());
+            }
+            return null;
+        });
+    }
 
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);

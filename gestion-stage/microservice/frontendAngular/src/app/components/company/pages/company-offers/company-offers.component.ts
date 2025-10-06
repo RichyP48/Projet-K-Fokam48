@@ -225,13 +225,22 @@ export class CompanyOffersComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (error: any) => {
-        console.error('Error loading offers:', error);
-        console.error('Error details:', {
+        console.error('❌ Erreur lors du chargement des offres:', error);
+        console.error('🔍 Détails de l\'erreur:', {
           status: error.status,
           message: error.message,
+          error: error.error,
           url: error.url
         });
+        
+        // Vérifier si c'est un problème d'authentification
+        if (error.status === 401) {
+          console.error('🚫 Problème d\'authentification - redirection vers login');
+          // Optionnel: rediriger vers la page de connexion
+        }
+        
         this.loading = false;
+        this.offers = []; // S'assurer que la liste est vide en cas d'erreur
       }
     });
   }

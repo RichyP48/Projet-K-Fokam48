@@ -1,40 +1,41 @@
 package com.mogou.service;
 
-import com.mogou.jwt.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
-    private final JwtUtil jwtUtil;
-
     public Long getCurrentUserId() {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getPrincipal() instanceof String) {
-                String token = (String) authentication.getPrincipal();
-                return jwtUtil.getClaimFromToken(token, claims -> claims.get("userId", Long.class));
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                String userIdHeader = request.getHeader("X-User-Id");
+                if (userIdHeader != null && !userIdHeader.isEmpty()) {
+                    return Long.valueOf(userIdHeader);
+                }
             }
-            return null;
         } catch (Exception e) {
-            return null;
+            System.err.println("Error extracting user ID from request: " + e.getMessage());
         }
+        return null;
     }
 
     public String getCurrentUserRole() {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getPrincipal() instanceof String) {
-                String token = (String) authentication.getPrincipal();
-                return jwtUtil.getRoleFromToken(token);
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                return request.getHeader("X-User-Roles");
             }
-            return null;
         } catch (Exception e) {
-            return null;
+            System.err.println("Error extracting user role from request: " + e.getMessage());
         }
+        return null;
     }
 }

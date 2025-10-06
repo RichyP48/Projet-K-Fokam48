@@ -20,6 +20,7 @@ public class CandidatureMapper {
                 .id(entity.getId())
                 .etudiantId(entity.getEtudiantId())
                 .offreId(entity.getOffreId())
+                .entrepriseId(entity.getEntrepriseId())
                 .statut(entity.getStatut())
                 .datePostulation(entity.getDatePostulation())
                 .commentaires(entity.getCommentaires())
@@ -28,6 +29,7 @@ public class CandidatureMapper {
                 // Champs pour compatibilité frontend
                 .studentId(entity.getEtudiantId())
                 .offerId(entity.getOffreId())
+                .companyId(entity.getEntrepriseId())
                 .status(statusEnglish)
                 .applicationDate(entity.getDatePostulation())
                 .coverLetter(entity.getCommentaires())

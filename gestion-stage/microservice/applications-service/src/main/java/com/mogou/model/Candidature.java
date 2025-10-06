@@ -26,6 +26,9 @@ public class Candidature {
     @Column(nullable = false)
     private Long offreId;
 
+    @Column(nullable = false)
+    private Long entrepriseId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatutCandidature statut;

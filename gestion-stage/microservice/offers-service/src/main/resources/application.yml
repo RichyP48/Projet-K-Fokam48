@@ -6,12 +6,12 @@ spring:
     name: offers-service
   sql:
     init:
-      mode: always
+      mode: never
 
   datasource:
     url: jdbc:postgresql://localhost:5432/offer_db
     username: postgres
-    password: pkf
+    password: 1985
     driver-class-name: org.postgresql.Driver
 
   # Configuration JPA

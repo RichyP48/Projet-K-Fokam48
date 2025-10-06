@@ -9,7 +9,7 @@ import java.util.List;
 
 @FeignClient(name = "applications-service", configuration = com.mogou.config.FeignConfig.class)
 public interface ApplicationClient {
-    @GetMapping("/api/candidatures/{id}")
+    @GetMapping("/api/candidatures/internal/{id}")
     CandidatureDetailsDto getCandidatureById(@PathVariable("id") Long id);
     
     @GetMapping("/api/candidatures/entreprise/me")

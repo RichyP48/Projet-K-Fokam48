@@ -54,7 +54,6 @@ public class OffreStageServiceImpl implements OffreStageService {
 
     @Override
     @Transactional(readOnly = true)
-    // @Cacheable(value = "offresCache", key = "{#domaine, #duree, #ville, #keyword, #pageable.pageNumber, #pageable.pageSize}")
     public Page<OffreStageDto> searchOffres(String domaine, Integer duree, String ville, String keyword, Pageable pageable) {
         DomaineStage domaineEnum = null;
         if (domaine != null && !domaine.isBlank()) {
@@ -65,10 +64,20 @@ public class OffreStageServiceImpl implements OffreStageService {
             }
         }
 
-        Specification<OffreStage> spec = Specification.where(OffreStageSpecification.aPourDomaine(domaineEnum))
-                .and(OffreStageSpecification.aPourDuree(duree))
-                .and(OffreStageSpecification.estDansLaVille(ville))
-                .and(OffreStageSpecification.contientMotCle(keyword));
+        Specification<OffreStage> spec = Specification.where(null);
+        
+        if (domaineEnum != null) {
+            spec = spec.and(OffreStageSpecification.aPourDomaine(domaineEnum));
+        }
+        if (duree != null) {
+            spec = spec.and(OffreStageSpecification.aPourDuree(duree));
+        }
+        if (ville != null && !ville.isBlank()) {
+            spec = spec.and(OffreStageSpecification.estDansLaVille(ville));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            spec = spec.and(OffreStageSpecification.contientMotCle(keyword));
+        }
 
         Page<OffreStage> offres = offreStageRepository.findAll(spec, pageable);
         return offres.map(this::mapToDto);

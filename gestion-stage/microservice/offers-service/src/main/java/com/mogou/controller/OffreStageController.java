@@ -237,6 +237,25 @@ public ResponseEntity<Page<OffreStageDto>> searchOffres(
             return ResponseEntity.ok(List.of());
         }
     }
+//     @GetMapping("/company/{companyId}") 
+// public ResponseEntity<List<OffreStageDto>> getOffersByCompanyId(@PathVariable Long companyId) {
+//     try {
+//         System.out.println("🔍 Offers-service: Looking for offers for company " + companyId);
+        
+//         Page<OffreStageDto> result = offreStageService.getOffresByEntrepriseId(companyId, PageRequest.of(0, 1000));
+        
+//         System.out.println("📋 Offers-service: Found " + result.getContent().size() + " offers for company " + companyId);
+        
+//         // On retourne la liste, même si elle est vide, avec un statut 200 OK.
+//         return ResponseEntity.ok(result.getContent());
+
+//     } catch (Exception e) {
+//         // En cas d'erreur INATTENDUE, on log l'erreur et on retourne un statut 500.
+//         System.err.println("❌ Offers-service: Error getting offers for company " + companyId + ": " + e.getMessage());
+//         e.printStackTrace();
+//         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//     }
+// }
     
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
@@ -244,7 +263,21 @@ public ResponseEntity<Page<OffreStageDto>> searchOffres(
         health.put("status", "UP");
         health.put("service", "offers-service");
         health.put("timestamp", System.currentTimeMillis());
+        health.put("totalOffers", offreStageRepository.count());
         return ResponseEntity.ok(health);
+    }
+    
+    @GetMapping("/debug")
+    public ResponseEntity<Map<String, Object>> debug(@RequestParam(required = false) Long companyId) {
+        Map<String, Object> debug = new HashMap<>();
+        debug.put("totalOffers", offreStageRepository.count());
+        debug.put("requestedCompanyId", companyId);
+        
+        if (companyId != null) {
+            debug.put("offersForCompany", offreStageRepository.findByEntrepriseId(companyId, PageRequest.of(0, 100)).getTotalElements());
+        }
+        
+        return ResponseEntity.ok(debug);
     }
     
     @PostMapping("/debug-create")

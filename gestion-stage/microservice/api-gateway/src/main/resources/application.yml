@@ -74,6 +74,11 @@ spring:
               uri: lb://conventions-service
               predicates:
                 - Path=/api/conventions/**
+                
+            - id: agreements-service
+              uri: lb://conventions-service
+              predicates:
+                - Path=/api/agreements/**
 
 
             - id: evaluation-service
